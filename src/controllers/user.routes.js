@@ -16,13 +16,17 @@ router.get('/seeder', async (req, res) => {
             email: 'elizavetaice123@gmail.com',
             password: 'password',
         });
-        const users = await User.findAll();
 
-        res.status(200).send(users)
+        const users = await User.findAll({
+            order: [['pseudo', 'ASC']]
+        });
+
+        res.status(200).send(users);
     } catch (e) {
         res.status(500).send(e);
     }
 });
+
 
 router.get('/', async (req, res) => {
     res.send(await userRepository.getUsers());
