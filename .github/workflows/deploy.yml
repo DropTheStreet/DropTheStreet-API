@@ -75,7 +75,7 @@ jobs:
           SCRIPT_AFTER: |
             whoami
             ls -al
-            cd ${{ secrets.REMOTE_PROD_TARGET }}
+            cd ${{ secrets.REMOTE_DEV_TARGET }}
             
             rm -f local_ssh_script-before-*.sh
             rm -f local_ssh_script-after-*.sh
