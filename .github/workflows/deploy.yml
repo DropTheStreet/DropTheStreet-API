@@ -59,7 +59,7 @@ jobs:
       # Déployer la branche 'dev' sur le prod
       - name: Deploy on main branch
         if: ${{ github.ref == 'refs/heads/dev' }}
-        uses: easingthemes/ssh-deploy@dev
+        uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ARGS: "-rlgoDzvc"  # Removed --delete-after to preserve .htaccess
