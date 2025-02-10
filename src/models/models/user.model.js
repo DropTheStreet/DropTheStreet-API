@@ -21,6 +21,18 @@ exports.User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false
     },
+    bio: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    photo:{
+        type: DataTypes.BLOB,
+        allowNull: true
+    },
+    dropcoins: {
+        type: DataTypes.NUMBER,
+        allowNull: false
+    },
 }, {
     tableName: 'User',
 })
