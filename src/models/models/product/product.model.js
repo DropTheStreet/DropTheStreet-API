@@ -22,19 +22,19 @@ exports.Product = sequelize.define('Product', {
             min: 0
         }
     },
-    id_product_favorite: {
-        type: DataTypes.UUID,
-        primaryKey : true,
+    image: {
+        type: DataTypes.BLOB,
         allowNull: false
     },
-    id_product_favorite: {
-        type: DataTypes.UUID,
-        primaryKey : true,
-        allowNull: false
+    quantity: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+        validate: {
+            min: 0
+        }
     },
-    id_product_favorite: {
+    id_category: {
         type: DataTypes.UUID,
-        primaryKey : true,
         allowNull: false
     },
     //added_date -> created_at
