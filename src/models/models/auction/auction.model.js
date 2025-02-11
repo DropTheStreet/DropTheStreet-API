@@ -5,7 +5,8 @@ exports.Auction = sequelize.define('Auction', {
     id_auction: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     initial_price: {
         type: DataTypes.INTEGER,

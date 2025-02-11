@@ -5,7 +5,8 @@ exports.Drop = sequelize.define('Drop', {
     id_drop: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     //end and start date will be definded by devs, so it can't be "created at"
     start_date: {

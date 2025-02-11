@@ -35,8 +35,10 @@ const tokenMiddlware = (app) => {
         }).unless(
             { path: [
                     { url : "/", methods: ["GET"] },
-                    { url: "/users", methods: ["GET"] },
-                    { url : "/users/seeder", methods: ["GET"] }
+                    { url: "/user", methods: ["GET"] },
+                    { url : "/user/seeder", methods: ["GET"] },
+                    { url : "/role/seeder", methods: ["GET"] },
+                    { url : "/role/", methods: ["GET"] }
                 ]
             })
     );

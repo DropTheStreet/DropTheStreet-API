@@ -22,15 +22,24 @@ exports.getIdUserByEmail = async (email) => {
 };
 
 exports.createUser = async (body) => {
-    let salt = bcrypt.genSaltSync(10);
-    let hash = bcrypt.hashSync(body.password, salt);
+    try {
+        let salt = bcrypt.genSaltSync(10);
+        let hash = bcrypt.hashSync(body.password, salt);
 
-    const user = body;
-    user.id_user = uuid.v4();
+        const user = {
+            id_user: body.id_user || uuid.v4(),
+            pseudo: body.pseudo,
+            email: body.email,
+            password: hash,
+            dropcoins: body.dropcoins ?? 10, // Default dropcoins for account creation
+            id_role: body.id_role,
+            bio: body.bio ?? null,
+            photo: body.photo ?? null,
+        };
 
-    user.password = hash;
-
-    let finalUser = await User.create(user);
-
-    return `${finalUser}`;
+        return await User.create(user);
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
 };

@@ -5,7 +5,8 @@ exports.User = sequelize.define('User', {
     id_user: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     pseudo: {
         type: DataTypes.STRING(50),
