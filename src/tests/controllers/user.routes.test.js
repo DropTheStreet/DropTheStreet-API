@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const { initializeRoutes } = require('../../controllers/user.routes');
+const { initializeRoutes } = require('../../controllers/user/user.routes');
 const { sequelize } = require('../../models/mysql.db');
 
 const app = express();

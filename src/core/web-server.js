@@ -1,5 +1,5 @@
 const express = require('express');
-const userRoutes = require('../controllers/user.routes');
+const userRoutes = require('../controllers/user/user.routes');
 const { sequelize } = require('../models/mysql.db')
 const http = require('http');
 const {initializeConfigMiddlewares, initializeErrorMiddlwares} = require("./middlewares");
