@@ -1,5 +1,5 @@
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../mysql.db')
+const { sequelize } = require('../../mysql.db')
 
 exports.Role = sequelize.define('Role', {
     id_role: {

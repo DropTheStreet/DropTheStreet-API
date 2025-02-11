@@ -1,5 +1,5 @@
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../mysql.db')
+const { sequelize } = require('../../mysql.db')
 
 exports.Product = sequelize.define('Product', {
     id_product_favorite: {

@@ -1,6 +1,6 @@
 const uuid = require('uuid');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models/user.model.js');
+const { User } = require('../../models/user/user.model.js');
 
 exports.getUsers = async () => await User.findAll();
 

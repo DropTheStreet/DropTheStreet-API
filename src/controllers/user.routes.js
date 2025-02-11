@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const userRepository = require('../models/repositories/user-repository');
-const { User } = require("../models/models/user.model");
+const userRepository = require('../models/repositories/user/user-repository');
+const { User } = require("../models/models/user/user.model");
 
 router.get('/seeder', async (req, res) => {
     try {
