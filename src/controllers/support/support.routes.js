@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Support } = require('../models/models/support/support.model');
+const { Support } = require('../../models/models/support/support.model');
 
 router.get('/seeder', async (req, res) => {
     try {
