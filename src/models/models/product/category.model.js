@@ -1,8 +1,8 @@
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../mysql.db')
+const { sequelize } = require('../../mysql.db')
 
-exports.PaymentStatus = sequelize.define('PaymentStatus', {
-    id_payment_status: {
+exports.Category = sequelize.define('Category', {
+    id_category: {
         type: DataTypes.UUID,
         primaryKey : true,
         allowNull: false
@@ -10,7 +10,7 @@ exports.PaymentStatus = sequelize.define('PaymentStatus', {
     name: {
         type: DataTypes.STRING(50),
         allowNull: false
-    },
+    }
 }, {
-    tableName: 'PaymentStatus',
+    tableName: 'Category',
 })

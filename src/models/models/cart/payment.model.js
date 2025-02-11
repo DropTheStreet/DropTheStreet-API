@@ -1,5 +1,5 @@
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../mysql.db')
+const { sequelize } = require('../../mysql.db')
 
 exports.Payment = sequelize.define('Payment', {
     id_payment: {

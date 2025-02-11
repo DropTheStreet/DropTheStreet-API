@@ -1,5 +1,5 @@
 const {DataTypes} = require('sequelize')
-const { sequelize } = require('../mysql.db')
+const { sequelize } = require('../../mysql.db')
 
 exports.Image = sequelize.define('Image', {
     id_image: {
