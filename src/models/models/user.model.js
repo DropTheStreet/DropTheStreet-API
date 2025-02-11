@@ -33,6 +33,10 @@ exports.User = sequelize.define('User', {
         type: DataTypes.NUMBER,
         allowNull: false
     },
+    id_role: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
 }, {
     tableName: 'User',
 })
