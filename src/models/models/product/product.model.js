@@ -27,7 +27,7 @@ exports.Product = sequelize.define('Product', {
         allowNull: false
     },
     quantity: {
-        type: DataTypes.NUMBER,
+        type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
             min: 0

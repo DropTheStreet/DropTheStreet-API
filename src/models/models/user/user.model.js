@@ -30,7 +30,7 @@ exports.User = sequelize.define('User', {
         allowNull: true
     },
     dropcoins: {
-        type: DataTypes.NUMBER,
+        type: DataTypes.INTEGER,
         allowNull: false
     },
     id_role: {

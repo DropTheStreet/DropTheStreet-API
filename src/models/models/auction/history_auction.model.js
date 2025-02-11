@@ -1,7 +1,7 @@
 const {DataTypes} = require('sequelize')
 const { sequelize } = require('../../mysql.db')
 
-exports.History_Auction = sequelize.define('History_Auction', {
+exports.HistoryAuction = sequelize.define('HistoryAuction', {
     id_history_auction: {
         type: DataTypes.UUID,
         primaryKey : true,
