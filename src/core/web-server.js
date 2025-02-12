@@ -1,4 +1,5 @@
 const express = require('express');
+const allRoutes = require('../controllers/seeder.routes.js');
 const userRoutes = require('../controllers/user/user.routes');
 const supportRoutes = require('../controllers/support/support.routes');
 const roleRoutes = require('../controllers/user/role.routes');
@@ -14,7 +15,7 @@ const {ProductFavorite} = require("../models/models/product/product_favorite.mod
 const {Drop} = require("../models/models/drop/drop.model");
 const {Statistic} = require("../models/models/statistic/statistic.model");
 const {Notification} = require("../models/models/notification/notification.model");
-const {Notification_Type} = require("../models/models/notification/notification_type.model");
+const {NotificationType} = require("../models/models/notification/notification_type.model");
 const {Challenge} = require("../models/models/gamification/challenge.model");
 const {Badge} = require("../models/models/gamification/badge.model");
 const {HistoryAuction} = require("../models/models/auction/history_auction.model");
@@ -83,9 +84,9 @@ class WebServer {
         User.hasMany(Notification, { foreignKey: 'id_user' });
         Notification.belongsTo(User, { foreignKey: 'id_user' });
 
-        // Relation entre Notification et Notification_Type (Une notification a un type)
-        Notification.belongsTo(Notification_Type, { foreignKey: 'id_notification_type' });
-        Notification_Type.hasMany(Notification, { foreignKey: 'id_notification_type' });
+        // Relation entre Notification et NotificationType (Une notification a un type)
+        Notification.belongsTo(NotificationType, { foreignKey: 'id_notification_type' });
+        NotificationType.hasMany(Notification, { foreignKey: 'id_notification_type' });
 
         // Relation entre Product et Image (Un produit peut avoir plusieurs images)
         Product.belongsToMany(Image, { through: 'ProductImage', foreignKey: 'id_product' });
@@ -112,7 +113,7 @@ class WebServer {
         Support.belongsTo(User, { foreignKey: 'id_user' });
 
         sequelize.sync();
-        // sequelize.sync({ force: true });
+        //sequelize.sync({ force: true });
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
@@ -132,6 +133,7 @@ class WebServer {
     }
 
     _initializeRoutes() {
+        this.app.use('/all', allRoutes.initializeRoutes());
         this.app.use('/user', userRoutes.initializeRoutes());
         this.app.use('/role', roleRoutes.initializeRoutes());
         this.app.use('/users', userRoutes.initializeRoutes());

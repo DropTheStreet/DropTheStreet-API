@@ -42,6 +42,7 @@ const tokenMiddlware = (app) => {
                     { url : "/role/", methods: ["GET"] },
                     { url: "/support/seeder", methods: ["POST"] },
                     { url: "/support/", methods: ["GET"] },
+                    { url: "/all/seeder", methods: ["POST"] },
                 ]
             })
     );
