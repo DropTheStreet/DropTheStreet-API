@@ -5,7 +5,8 @@ exports.Statistic = sequelize.define('Statistic', {
     id_statistic: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     sold_quantity: {
         type: DataTypes.INTEGER,

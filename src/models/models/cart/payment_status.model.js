@@ -5,7 +5,8 @@ exports.PaymentStatus = sequelize.define('PaymentStatus', {
     id_payment_status: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     name: {
         type: DataTypes.STRING(50),

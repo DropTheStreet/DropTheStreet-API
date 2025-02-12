@@ -1,27 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const { Role } = require('../../models/models/user/role.model');
+const {DataTypes} = require("sequelize");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         const rolesToCreate = [
             { name: 'Admin' },
             { name: 'User' },
-            { name: 'Moderator' }
+            { name: 'Seller' }
         ];
 
         for (let role of rolesToCreate) {
             const existingRole = await Role.findOne({ where: { name: role.name } });
             if (existingRole) {
-                console.log(`Le rôle "${role.name}" existe déjà. Ignorer la création.`);
+                console.log(`Role "${role.name}" already exist`);
             } else {
                 await Role.create({
-                    id_role: require('sequelize').UUIDV4(),
                     name: role.name,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
-                console.log(`Rôle "${role.name}" créé avec succès.`);
+
+                console.log(`Role "${role.name}" was created successfully.`);
             }
         }
 
@@ -32,7 +33,7 @@ router.get('/seeder', async (req, res) => {
         res.status(200).send(roles);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de la création des rôles', error: e.message });
+        res.status(500).send({ message: 'Error during roles creation', error: e.message });
     }
 });
 
@@ -43,7 +44,7 @@ router.get('/', async (req, res) => {
         });
         res.status(200).send(roles);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des rôles', error: e.message });
+        res.status(500).send({ message: 'Error during getting of roles', error: e.message });
     }
 });
 

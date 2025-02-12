@@ -5,7 +5,8 @@ exports.Payment = sequelize.define('Payment', {
     id_payment: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     id_user: {
         type: DataTypes.UUID,

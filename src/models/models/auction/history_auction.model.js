@@ -5,7 +5,8 @@ exports.HistoryAuction = sequelize.define('HistoryAuction', {
     id_history_auction: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     //sum total
     amount: {

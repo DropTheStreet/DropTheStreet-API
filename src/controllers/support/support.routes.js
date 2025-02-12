@@ -13,7 +13,7 @@ router.post('/seeder', async (req, res) => {
         for (let ticket of ticketsToCreate) {
             const existingTicket = await Support.findOne({ where: { subject: ticket.subject } });
             if (existingTicket) {
-                console.log(`Le ticket avec le sujet "${ticket.subject}" existe déjà. Ignorer la création.`);
+                console.log(`Ticket with this subject "${ticket.subject}" already exist`);
             } else {
                 await Support.create({
                     subject: ticket.subject,
@@ -22,7 +22,7 @@ router.post('/seeder', async (req, res) => {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
-                console.log(`Ticket avec le sujet "${ticket.subject}" créé avec succès.`);
+                console.log(`Ticket with this subject "${ticket.subject}" was created successfully`);
             }
         }
 
@@ -33,7 +33,7 @@ router.post('/seeder', async (req, res) => {
         res.status(200).send(tickets);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de la création des tickets de support', error: e.message });
+        res.status(500).send({ message: 'Error during creation of support ticket', error: e.message });
     }
 });
 
@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
         });
         res.status(200).send(tickets);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des tickets de support', error: e.message });
+        res.status(500).send({ message: 'Error during getting of support tickets', error: e.message });
     }
 });
 
