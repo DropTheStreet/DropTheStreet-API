@@ -5,7 +5,8 @@ exports.Notification = sequelize.define('Notification', {
     id_notification: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     content: {
         type: DataTypes.STRING(500),

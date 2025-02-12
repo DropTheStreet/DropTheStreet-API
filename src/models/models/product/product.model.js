@@ -5,7 +5,8 @@ exports.Product = sequelize.define('Product', {
     id_product_favorite: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     name: {
         type: DataTypes.STRING(50),

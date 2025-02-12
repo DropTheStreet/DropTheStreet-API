@@ -5,7 +5,8 @@ exports.Challenge = sequelize.define('Challenge', {
     id_challenge: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     name: {
         type: DataTypes.STRING(100),

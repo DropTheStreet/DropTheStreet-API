@@ -5,7 +5,8 @@ exports.ShoppingCart = sequelize.define('ShoppingCart', {
     id_shopping_cart: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     id_user: {
         type: DataTypes.UUID,

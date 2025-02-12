@@ -5,7 +5,8 @@ exports.ProductImage = sequelize.define('ProductImage', {
     id_product_image: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     id_image: {
         type: DataTypes.UUID,

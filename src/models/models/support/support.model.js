@@ -6,6 +6,7 @@ exports.Support = sequelize.define('Support', {
         type: DataTypes.UUID,
         primaryKey : true,
         allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     subject: {
         type: DataTypes.STRING(300),

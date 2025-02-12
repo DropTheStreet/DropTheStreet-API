@@ -5,7 +5,8 @@ exports.User_Challenge = sequelize.define('User_Challenge', {
     id_user_challenge: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
     },
     //from 1 to 10  (1 - 10%, 5 - 50%)
     progression: {
