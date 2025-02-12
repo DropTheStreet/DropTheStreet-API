@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
+const {loginUser} = require("../../models/repositories/user/user-repository");
 
 router.get('/seeder', async (req, res) => {
     try {
@@ -87,6 +88,33 @@ router.get('/', async (req, res) => {
         res.status(200).send(users);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of users', error: e.message });
+    }
+});
+
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
+        const { token, user } = await loginUser(email, password);
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                id_user: user.id_user,
+                pseudo: user.pseudo,
+                email: user.email,
+                bio: user.bio,
+                dropcoins: user.dropcoins,
+                id_role: user.id_role
+            }
+        });
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid email or password' });
     }
 });
 

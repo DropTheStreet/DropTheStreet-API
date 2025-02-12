@@ -1,6 +1,12 @@
 const uuid = require('uuid');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const { User } = require('../../models/user/user.model.js');
+const {Role} = require("../../models/user/role.model");
+
+const SECRET_KEY = process.env.SECRET_KEY;
+const EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
 exports.getUsers = async () => await User.findAll();
 
@@ -40,6 +46,34 @@ exports.createUser = async (body) => {
         return await User.create(user);
     } catch (error) {
         console.error('Error creating user:', error);
+        throw error;
+    }
+};
+
+exports.loginUser = async (email, password) => {
+    try {
+        const user = await User.findOne({
+            where: { email },
+            include: [{ model: Role, attributes: ['name'] }]
+        });
+        if (!user) {
+            console.error('Invalid email or password');
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            console.error('Invalid email or password');
+        }
+
+        const token = jwt.sign(
+            { id_user: user.id_user, email: user.email, role: user.Role.name },
+            SECRET_KEY,
+            { expiresIn: EXPIRES_IN }
+        );
+
+        return { token, user };
+    } catch (error) {
+        console.error('Login error:', error.message);
         throw error;
     }
 };
