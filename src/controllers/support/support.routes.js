@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Support } = require('../../models/models/support/support.model');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         const ticketsToCreate = [
             { subject: 'Problème de connexion', message: 'Je ne peux pas me connecter à mon compte.', is_resolved: false },
@@ -16,7 +16,6 @@ router.get('/seeder', async (req, res) => {
                 console.log(`Le ticket avec le sujet "${ticket.subject}" existe déjà. Ignorer la création.`);
             } else {
                 await Support.create({
-                    id_support: require('sequelize').UUIDV4(),
                     subject: ticket.subject,
                     message: ticket.message,
                     is_resolved: ticket.is_resolved,
