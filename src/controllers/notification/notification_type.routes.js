@@ -3,9 +3,9 @@ const router = express.Router();
 const { NotificationType } = require('../../models/models/notification/notification_type.model');
 const { v4: uuidv4 } = require('uuid');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
-        // Types de notifications à créer
+
         const notificationTypesToCreate = [
             { name: 'Alerte de commande' },
             { name: 'Message de support' },
@@ -20,7 +20,7 @@ router.get('/seeder', async (req, res) => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
-            console.log(`Type de notification ajouté : ${type.name}`);
+            console.log(`Type of notification was added : ${type.name}`);
         }
 
         const notificationTypes = await NotificationType.findAll();
@@ -28,7 +28,7 @@ router.get('/seeder', async (req, res) => {
         res.status(200).send(notificationTypes);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des types de notification', error: e.message });
+        res.status(500).send({ message: 'Error during adding of type of notification', error: e.message });
     }
 });
 
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
         const notificationTypes = await NotificationType.findAll();
         res.status(200).send(notificationTypes);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des types de notification', error: e.message });
+        res.status(500).send({ message: 'Error during getting of types of notifications', error: e.message });
     }
 });
 

@@ -3,14 +3,13 @@ const router = express.Router();
 const { Challenge } = require('../../models/models/gamification/challenge.model');
 const { v4: uuidv4 } = require('uuid');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
-        // Défis à ajouter
         const challengesToCreate = [
             {
                 name: 'Défi de Lancement',
                 description: 'Participe à notre premier défi et gagne des récompenses exclusives!',
-                reward: 1000, // récompense en dropcoins
+                reward: 1000,
                 is_actif: true
             },
             {
@@ -27,7 +26,6 @@ router.get('/seeder', async (req, res) => {
             }
         ];
 
-        // Création des défis
         for (let challenge of challengesToCreate) {
             await Challenge.create({
                 id_challenge: uuidv4(),
@@ -38,17 +36,15 @@ router.get('/seeder', async (req, res) => {
                 createdAt: new Date(), // Date de création
                 updatedAt: new Date(), // Date de mise à jour
             });
-            console.log(`Défi ajouté: ${challenge.name}`);
+            console.log(`Challenge added successfully: ${challenge.name}`);
         }
 
-        // Récupérer tous les défis pour renvoyer la réponse
         const challenges = await Challenge.findAll();
 
-        // Retourner la liste des défis
         res.status(200).send(challenges);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des défis', error: e.message });
+        res.status(500).send({ message: 'Error during creation of challenges', error: e.message });
     }
 });
 
@@ -57,7 +53,7 @@ router.get('/', async (req, res) => {
         const challenges = await Challenge.findAll();
         res.status(200).send(challenges);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des défis', error: e.message });
+        res.status(500).send({ message: 'Error during getting of challenges', error: e.message });
     }
 });
 

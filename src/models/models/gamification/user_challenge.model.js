@@ -22,6 +22,14 @@ exports.UserChallenge = sequelize.define('UserChallenge', {
         type: DataTypes.DATE,
         allowNull: true
     },
+    id_user: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_challenge: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
 }, {
     tableName: 'UserChallenge',
 })

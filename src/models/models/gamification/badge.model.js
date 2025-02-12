@@ -17,7 +17,7 @@ exports.Badge = sequelize.define('Badge', {
         allowNull: false
     },
     image: {
-        type: DataTypes.BLOB,
+        type: DataTypes.BLOB('medium'),
         allowNull: true
     },
 }, {

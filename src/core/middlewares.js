@@ -54,6 +54,18 @@ const tokenMiddlware = (app) => {
                     { url: "/favorite/seeder", methods: ["POST"] },
                     { url: "/product-image/", methods: ["GET"] },
                     { url: "/product-image/seeder", methods: ["POST"] },
+                    { url: "/notification/", methods: ["GET"] },
+                    { url: "/notification/seeder", methods: ["POST"] },
+                    { url: "/notification-type/", methods: ["GET"] },
+                    { url: "/notification-type/seeder", methods: ["POST"] },
+                    { url: "/badge/", methods: ["GET"] },
+                    { url: "/badge/seeder", methods: ["POST"] },
+                    { url: "/user-badge/", methods: ["GET"] },
+                    { url: "/user-badge/seeder", methods: ["POST"] },
+                    { url: "/challenge/", methods: ["GET"] },
+                    { url: "/challenge/seeder", methods: ["POST"] },
+                    { url: "/user-challenge/", methods: ["GET"] },
+                    { url: "/user-challenge/seeder", methods: ["POST"] },
                     { url: "/all/seeder", methods: ["POST"] },
                 ]
             })

@@ -9,6 +9,12 @@ const productCategoryRoutes = require('../controllers/product/category.routes');
 const productFavoriteRoutes = require('../controllers/product/product_favorite.routes');
 const imageRoutes = require('../controllers/product/image.routes');
 const productImageRoutes = require('../controllers/product/product_image.routes');
+const notificationRoutes = require('../controllers/notification/notification.routes');
+const notificationTypeRoutes = require('../controllers/notification/notification_type.routes');
+const badgeRoutes = require('../controllers/gamification/badge.routes');
+const challengeRoutes = require('../controllers/gamification/challenge.routes');
+const userBadgeRoutes = require('../controllers/gamification/user_badge.routes');
+const userChallengeRoutes = require('../controllers/gamification/user_challenge.routes');
 const { sequelize } = require('../models/mysql.db')
 const http = require('http');
 const {initializeConfigMiddlewares, initializeErrorMiddlwares} = require("./middlewares");
@@ -119,7 +125,7 @@ class WebServer {
         Support.belongsTo(User, { foreignKey: 'id_user' });
 
         sequelize.sync();
-        //sequelize.sync({ force: true });
+      //sequelize.sync({ force: true });
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
@@ -150,6 +156,12 @@ class WebServer {
         this.app.use('/image', imageRoutes.initializeRoutes());
         this.app.use('/favorite', productFavoriteRoutes.initializeRoutes());
         this.app.use('/product-image', productImageRoutes.initializeRoutes());
+        this.app.use('/notification', notificationRoutes.initializeRoutes());
+        this.app.use('/notification-type', notificationTypeRoutes.initializeRoutes());
+        this.app.use('/badge', badgeRoutes.initializeRoutes());
+        this.app.use('/challenge', challengeRoutes.initializeRoutes());
+        this.app.use('/user-badge', userBadgeRoutes.initializeRoutes());
+        this.app.use('/user-challenge', userChallengeRoutes.initializeRoutes());
     }
 }
 

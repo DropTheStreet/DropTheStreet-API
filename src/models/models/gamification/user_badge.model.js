@@ -8,6 +8,14 @@ exports.UserBadge = sequelize.define('UserBadge', {
         allowNull: false,
         defaultValue: DataTypes.UUIDV4
     },
+    id_user: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_badge: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     //obtaining_date -> created at
 }, {
     tableName: 'UserBadge',

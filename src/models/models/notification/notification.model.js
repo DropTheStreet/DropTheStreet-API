@@ -17,6 +17,14 @@ exports.Notification = sequelize.define('Notification', {
         allowNull: false,
         defaultValue:false
     },
+    id_notification_type: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_user: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     //date -> created at
 }, {
     tableName: 'Notification',

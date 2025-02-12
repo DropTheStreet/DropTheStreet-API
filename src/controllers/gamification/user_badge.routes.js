@@ -2,36 +2,51 @@ const express = require('express');
 const router = express.Router();
 const { UserBadge } = require('../../models/models/gamification/user_badge.model');
 const { v4: uuidv4 } = require('uuid');
+const {User} = require("../../models/models/user/user.model");
+const {Badge} = require("../../models/models/gamification/badge.model");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
-        // Badges à ajouter avec la date d'obtention
-        const badgesToCreate = [
-            { obtaining_date: new Date('2025-01-15') },
-            { obtaining_date: new Date('2025-02-10') },
-            { obtaining_date: new Date('2025-03-05') },
-            { obtaining_date: new Date('2025-04-20') },
-        ];
-
-        // Création des badges utilisateur
-        for (let badge of badgesToCreate) {
-            await UserBadge.create({
-                id_user_badge: uuidv4(),
-                obtaining_date: badge.obtaining_date,
-                createdAt: new Date(),  // Utilisation de createdAt pour enregistrer la date
-                updatedAt: new Date(),
-            });
-            console.log(`Badge utilisateur ajouté avec la date d'obtention : ${badge.obtaining_date}`);
+        const users = await User.findAll();
+        if (users.length < 3) {
+            return res.status(400).send({ message: 'Not enough users for seeding' });
         }
 
-        // Récupérer tous les badges utilisateurs
+        const badges = await Badge.findAll();
+        if (badges.length < 3) {
+            return res.status(400).send({ message: 'Not enough badges for seeding' });
+        }
+        const badgesToCreate = [
+            {
+                id_user: users[0].id_user,
+                id_badge: badges[0].id_badge
+            },
+            {
+                id_user: users[1].id_user,
+                id_badge: badges[1].id_badge
+            },
+            {
+                id_user: users[1].id_user,
+                id_badge: badges[1].id_badge
+            }
+        ];
+
+        for (let badge of badgesToCreate) {
+            await UserBadge.create({
+                id_user: badge.id_user,
+                id_badge: badge.id_badge,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            console.log(`Badge for user was created successfully : ${badge.id_user}`);
+        }
+
         const userBadges = await UserBadge.findAll();
 
-        // Retourner la réponse
         res.status(200).send(userBadges);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des badges utilisateur', error: e.message });
+        res.status(500).send({ message: 'Error during adding of user badge', error: e.message });
     }
 });
 
@@ -40,7 +55,7 @@ router.get('/', async (req, res) => {
         const userBadges = await UserBadge.findAll();
         res.status(200).send(userBadges);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des badges utilisateur', error: e.message });
+        res.status(500).send({ message: 'Error during getting user badges', error: e.message });
     }
 });
 
