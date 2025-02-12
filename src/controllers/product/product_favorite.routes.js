@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { ProductImage } = require('../../models/models/product/product_image.model');
+const { ProductFavorite } = require('../../models/models/product/product_favorite.model');
 const { v4: uuidv4 } = require('uuid');
 
 router.get('/seeder', async (req, res) => {

@@ -1,7 +1,7 @@
 const {DataTypes} = require('sequelize')
 const { sequelize } = require('../../mysql.db')
 
-exports.User_Challenge = sequelize.define('User_Challenge', {
+exports.UserChallenge = sequelize.define('UserChallenge', {
     id_user_challenge: {
         type: DataTypes.UUID,
         primaryKey : true,
@@ -22,5 +22,5 @@ exports.User_Challenge = sequelize.define('User_Challenge', {
         allowNull: true
     },
 }, {
-    tableName: 'User_Challenge',
+    tableName: 'UserChallenge',
 })

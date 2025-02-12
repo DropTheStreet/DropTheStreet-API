@@ -1,7 +1,7 @@
 const {DataTypes} = require('sequelize')
 const { sequelize } = require('../../mysql.db')
 
-exports.User_Badge = sequelize.define('User_Badge', {
+exports.UserBadge = sequelize.define('UserBadge', {
     id_user_badge: {
         type: DataTypes.UUID,
         primaryKey : true,
@@ -9,5 +9,5 @@ exports.User_Badge = sequelize.define('User_Badge', {
     },
     //obtaining_date -> created at
 }, {
-    tableName: 'User_Badge',
+    tableName: 'UserBadge',
 })
