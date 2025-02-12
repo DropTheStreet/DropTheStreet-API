@@ -5,7 +5,7 @@ exports.Support = sequelize.define('Support', {
     id_support: {
         type: DataTypes.UUID,
         primaryKey : true,
-        allowNull: false
+        allowNull: false,
     },
     subject: {
         type: DataTypes.STRING(300),
