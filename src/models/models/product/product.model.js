@@ -2,7 +2,7 @@ const {DataTypes} = require('sequelize')
 const { sequelize } = require('../../mysql.db')
 
 exports.Product = sequelize.define('Product', {
-    id_product_favorite: {
+    id_product: {
         type: DataTypes.UUID,
         primaryKey : true,
         allowNull: false,
@@ -22,10 +22,6 @@ exports.Product = sequelize.define('Product', {
         validate: {
             min: 0
         }
-    },
-    image: {
-        type: DataTypes.BLOB,
-        allowNull: false
     },
     quantity: {
         type: DataTypes.INTEGER,

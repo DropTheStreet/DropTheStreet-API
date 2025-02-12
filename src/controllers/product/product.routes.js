@@ -2,9 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { Product } = require('../../models/models/product/product.model');
 const { v4: uuidv4 } = require('uuid');
+const {Category} = require("../../models/models/product/category.model");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
+        const categories = await Category.findAll();
+        if (categories.length < 3) {
+            return res.status(400).send({ message: 'Not enough categories for seeding' });
+        }
+
         const productsToCreate = [
             {
                 name: 'Produit 1',
@@ -12,7 +18,7 @@ router.get('/seeder', async (req, res) => {
                 price: 19.99,
                 image: null,
                 quantity: 100,
-                id_category: uuidv4()
+                id_category: categories[0].id_category,
             },
             {
                 name: 'Produit 2',
@@ -20,7 +26,7 @@ router.get('/seeder', async (req, res) => {
                 price: 29.99,
                 image: null,
                 quantity: 50,
-                id_category: uuidv4()
+                id_category: categories[1].id_category,
             },
             {
                 name: 'Produit 3',
@@ -28,7 +34,7 @@ router.get('/seeder', async (req, res) => {
                 price: 39.99,
                 image: null,
                 quantity: 200,
-                id_category: uuidv4()
+                id_category: categories[2].id_category,
             }
         ];
 

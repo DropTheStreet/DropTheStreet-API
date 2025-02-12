@@ -2,6 +2,12 @@ const express = require('express');
 const userRoutes = require('../controllers/user/user.routes');
 const supportRoutes = require('../controllers/support/support.routes');
 const roleRoutes = require('../controllers/user/role.routes');
+const statisticRoutes = require('../controllers/statistic/statistic.routes');
+const productRoutes = require('../controllers/product/product.routes');
+const productCategoryRoutes = require('../controllers/product/category.routes');
+const productFavoriteRoutes = require('../controllers/product/product_favorite.routes');
+const imageRoutes = require('../controllers/product/image.routes');
+const productImageRoutes = require('../controllers/product/product_image.routes');
 const { sequelize } = require('../models/mysql.db')
 const http = require('http');
 const {initializeConfigMiddlewares, initializeErrorMiddlwares} = require("./middlewares");
@@ -14,7 +20,7 @@ const {ProductFavorite} = require("../models/models/product/product_favorite.mod
 const {Drop} = require("../models/models/drop/drop.model");
 const {Statistic} = require("../models/models/statistic/statistic.model");
 const {Notification} = require("../models/models/notification/notification.model");
-const {Notification_Type} = require("../models/models/notification/notification_type.model");
+const {NotificationType} = require("../models/models/notification/notification_type.model");
 const {Challenge} = require("../models/models/gamification/challenge.model");
 const {Badge} = require("../models/models/gamification/badge.model");
 const {HistoryAuction} = require("../models/models/auction/history_auction.model");
@@ -84,8 +90,8 @@ class WebServer {
         Notification.belongsTo(User, { foreignKey: 'id_user' });
 
         // Relation entre Notification et Notification_Type (Une notification a un type)
-        Notification.belongsTo(Notification_Type, { foreignKey: 'id_notification_type' });
-        Notification_Type.hasMany(Notification, { foreignKey: 'id_notification_type' });
+        Notification.belongsTo(NotificationType, { foreignKey: 'id_notification_type' });
+        NotificationType.hasMany(Notification, { foreignKey: 'id_notification_type' });
 
         // Relation entre Product et Image (Un produit peut avoir plusieurs images)
         Product.belongsToMany(Image, { through: 'ProductImage', foreignKey: 'id_product' });
@@ -136,6 +142,12 @@ class WebServer {
         this.app.use('/role', roleRoutes.initializeRoutes());
         this.app.use('/users', userRoutes.initializeRoutes());
         this.app.use('/support', supportRoutes.initializeRoutes());
+        this.app.use('/statistic', statisticRoutes.initializeRoutes());
+        this.app.use('/product', productRoutes.initializeRoutes());
+        this.app.use('/category', productCategoryRoutes.initializeRoutes());
+        this.app.use('/image', imageRoutes.initializeRoutes());
+        this.app.use('/favorite', productFavoriteRoutes.initializeRoutes());
+        this.app.use('/product-image', productImageRoutes.initializeRoutes());
     }
 }
 

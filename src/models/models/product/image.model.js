@@ -9,7 +9,7 @@ exports.Image = sequelize.define('Image', {
         defaultValue: DataTypes.UUIDV4
     },
     image: {
-        type: DataTypes.BLOB,
+        type: DataTypes.BLOB('medium'),
         allowNull: false
     }
 }, {

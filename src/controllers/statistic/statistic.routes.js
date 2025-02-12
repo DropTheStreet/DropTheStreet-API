@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Statistic } = require('../../models/models/statistic/statistic.model');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         const statisticsToCreate = [
             { sold_quantity: 150, income: 3000 },
@@ -13,7 +13,7 @@ router.get('/seeder', async (req, res) => {
         for (let stat of statisticsToCreate) {
             const existingStat = await Statistic.findOne({ where: { sold_quantity: stat.sold_quantity, income: stat.income } });
             if (existingStat) {
-                console.log(`La statistique avec la quantité vendue "${stat.sold_quantity}" existe déjà. Ignorer la création.`);
+                console.log(`Statistic with sold quantity "${stat.sold_quantity}" already exist.`);
             } else {
                 await Statistic.create({
                     sold_quantity: stat.sold_quantity,
@@ -21,7 +21,7 @@ router.get('/seeder', async (req, res) => {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
-                console.log(`Statistique avec la quantité vendue "${stat.sold_quantity}" créée avec succès.`);
+                console.log(`Statistic with sold quantity  "${stat.sold_quantity}" was created successfully`);
             }
         }
 
@@ -32,7 +32,7 @@ router.get('/seeder', async (req, res) => {
         res.status(200).send(statistics);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de la création des statistiques', error: e.message });
+        res.status(500).send({ message: 'Error during the statistic creation', error: e.message });
     }
 });
 
@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
         });
         res.status(200).send(statistics);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des statistiques', error: e.message });
+        res.status(500).send({ message: 'Error during getting of getting statistics', error: e.message });
     }
 });
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const { Category } = require('../../models/models/product/category.model');
 const { v4: uuidv4 } = require('uuid');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         // Catégories de test
         const categoriesToCreate = [
@@ -21,7 +21,7 @@ router.get('/seeder', async (req, res) => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
-            console.log(`Catégorie ajoutée : ${cat.name}`);
+            console.log(`Creation og category : ${cat.name}`);
         }
 
         const categories = await Category.findAll();
@@ -29,7 +29,7 @@ router.get('/seeder', async (req, res) => {
         res.status(200).send(categories);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des catégories', error: e.message });
+        res.status(500).send({ message: 'Error during creation of category', error: e.message });
     }
 });
 
@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
         const categories = await Category.findAll();
         res.status(200).send(categories);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des catégories', error: e.message });
+        res.status(500).send({ message: 'Error during getting of categories', error: e.message });
     }
 });
 
