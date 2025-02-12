@@ -1,4 +1,5 @@
 const express = require('express');
+const allRoutes = require('../controllers/seeder.routes.js');
 const userRoutes = require('../controllers/user/user.routes');
 const supportRoutes = require('../controllers/support/support.routes');
 const roleRoutes = require('../controllers/user/role.routes');
@@ -118,7 +119,7 @@ class WebServer {
         Support.belongsTo(User, { foreignKey: 'id_user' });
 
         sequelize.sync();
-        // sequelize.sync({ force: true });
+        //sequelize.sync({ force: true });
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
@@ -138,6 +139,7 @@ class WebServer {
     }
 
     _initializeRoutes() {
+        this.app.use('/all', allRoutes.initializeRoutes());
         this.app.use('/user', userRoutes.initializeRoutes());
         this.app.use('/role', roleRoutes.initializeRoutes());
         this.app.use('/users', userRoutes.initializeRoutes());

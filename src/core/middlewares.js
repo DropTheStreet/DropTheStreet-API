@@ -54,6 +54,7 @@ const tokenMiddlware = (app) => {
                     { url: "/favorite/seeder", methods: ["POST"] },
                     { url: "/product-image/", methods: ["GET"] },
                     { url: "/product-image/seeder", methods: ["POST"] },
+                    { url: "/all/seeder", methods: ["POST"] },
                 ]
             })
     );
