@@ -36,12 +36,10 @@ const tokenMiddlware = (app) => {
             { path: [
                     { url : "/", methods: ["GET"] },
                     { url: "/user", methods: ["GET"] },
-                    { url : "/user/seeder", methods: ["GET"] },
+                    { url : "/user/seeder", methods: ["POST"] },
                     { url : "/user/login", methods: ["POST"] },
-                    { url : "/role/seeder", methods: ["GET"] },
+                    { url : "/role/seeder", methods: ["POST"] },
                     { url : "/role/", methods: ["GET"] },
-                    { url: "/users", methods: ["GET"] },
-                    { url : "/users/seeder", methods: ["GET"] },
                     { url: "/support/seeder", methods: ["POST"] },
                     { url: "/support/", methods: ["GET"] },
                 ]

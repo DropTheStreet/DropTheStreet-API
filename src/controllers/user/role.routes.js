@@ -3,7 +3,7 @@ const router = express.Router();
 const { Role } = require('../../models/models/user/role.model');
 const {DataTypes} = require("sequelize");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         const rolesToCreate = [
             { name: 'Admin' },

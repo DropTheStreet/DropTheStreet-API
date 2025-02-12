@@ -5,7 +5,7 @@ const { User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
 const {loginUser} = require("../../models/repositories/user/user-repository");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
         const roles = await Role.findAll();
         const roleMap = {};
