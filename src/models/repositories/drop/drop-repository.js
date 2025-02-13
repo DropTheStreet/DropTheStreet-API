@@ -2,7 +2,7 @@ const { Drop } = require('../../models/drop/drop.model.js');
 
 class DropRepository {
     async create(dropData) {
-        return await Drop.create(dropData);
+        return Drop.create(dropData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class DropRepository {
     async update(id, updatedData) {
         const drop = await Drop.findByPk(id);
         if (!drop) {
-            throw new Error('Drop non trouvé');
+            throw new Error('Drop was not found');
         }
         return await drop.update(updatedData);
     }
@@ -24,7 +24,7 @@ class DropRepository {
     async delete(id) {
         const drop = await Drop.findByPk(id);
         if (!drop) {
-            throw new Error('Drop non trouvé');
+            throw new Error('Drop was not found');
         }
         await drop.destroy();
         return true;

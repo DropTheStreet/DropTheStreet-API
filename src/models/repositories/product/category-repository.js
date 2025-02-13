@@ -2,7 +2,7 @@ const { Category } = require('../../models/product/category.model.js');
 
 class CategoryRepository {
     async create(categoryData) {
-        return await Category.create(categoryData);
+        return Category.create(categoryData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class CategoryRepository {
     async update(id, updatedData) {
         const category = await Category.findByPk(id);
         if (!category) {
-            throw new Error('Category not found');
+            throw new Error('Category was not found');
         }
         return await category.update(updatedData);
     }
@@ -24,7 +24,7 @@ class CategoryRepository {
     async delete(id) {
         const category = await Category.findByPk(id);
         if (!category) {
-            throw new Error('Category not found');
+            throw new Error('Category was not found');
         }
         await category.destroy();
         return true;

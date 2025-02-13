@@ -2,29 +2,29 @@ const { UserChallenge } = require('../../models/gamification/user_challenge.mode
 
 class UserChallengeRepository {
     async create(userChallengeData) {
-        return await User_Challenge.create(userChallengeData);
+        return UserChallenge.create(userChallengeData);
     }
 
     async findById(id) {
-        return await User_Challenge.findByPk(id);
+        return await UserChallenge.findByPk(id);
     }
 
     async findAll() {
-        return await User_Challenge.findAll();
+        return await UserChallenge.findAll();
     }
 
     async update(id, updatedData) {
-        const userChallenge = await User_Challenge.findByPk(id);
+        const userChallenge = await UserChallenge.findByPk(id);
         if (!userChallenge) {
-            throw new Error('User_Challenge non trouvé');
+            throw new Error('User Challenge was not found');
         }
         return await userChallenge.update(updatedData);
     }
 
     async delete(id) {
-        const userChallenge = await User_Challenge.findByPk(id);
+        const userChallenge = await UserChallenge.findByPk(id);
         if (!userChallenge) {
-            throw new Error('User_Challenge non trouvé');
+            throw new Error('User Challenge was not found');
         }
         await userChallenge.destroy();
         return true;

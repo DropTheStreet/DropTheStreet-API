@@ -2,29 +2,29 @@ const { NotificationType } = require('../../models/notification/notification_typ
 
 class NotificationTypeRepository {
     async create(notificationTypeData) {
-        return await Notification_Type.create(notificationTypeData);
+        return NotificationType.create(notificationTypeData);
     }
 
     async findById(id) {
-        return await Notification_Type.findByPk(id);
+        return await NotificationType.findByPk(id);
     }
 
     async findAll() {
-        return await Notification_Type.findAll();
+        return await NotificationType.findAll();
     }
 
     async update(id, updatedData) {
-        const notificationType = await Notification_Type.findByPk(id);
+        const notificationType = await NotificationType.findByPk(id);
         if (!notificationType) {
-            throw new Error('Notification type not found');
+            throw new Error('Notification type was not found');
         }
         return await notificationType.update(updatedData);
     }
 
     async delete(id) {
-        const notificationType = await Notification_Type.findByPk(id);
+        const notificationType = await NotificationType.findByPk(id);
         if (!notificationType) {
-            throw new Error('Notification type not found');
+            throw new Error('Notification type was not found');
         }
         await notificationType.destroy();
         return true;

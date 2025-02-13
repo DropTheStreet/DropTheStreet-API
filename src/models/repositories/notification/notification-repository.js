@@ -2,7 +2,7 @@ const { Notification } = require('../../models/notification/notification.model.j
 
 class NotificationRepository {
     async create(notificationData) {
-        return await Notification.create(notificationData);
+        return Notification.create(notificationData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class NotificationRepository {
     async update(id, updatedData) {
         const notification = await Notification.findByPk(id);
         if (!notification) {
-            throw new Error('Notification not found');
+            throw new Error('Notification was not found');
         }
         return await notification.update(updatedData);
     }
@@ -24,7 +24,7 @@ class NotificationRepository {
     async delete(id) {
         const notification = await Notification.findByPk(id);
         if (!notification) {
-            throw new Error('Notification not found');
+            throw new Error('Notification was not found');
         }
         await notification.destroy();
         return true;

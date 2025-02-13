@@ -2,7 +2,7 @@ const { Payment } = require('../../models/cart/payment.model.js');
 
 class PaymentRepository {
     async create(paymentData) {
-        return await Payment.create(paymentData);
+        return Payment.create(paymentData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class PaymentRepository {
     async update(id, updatedData) {
         const payment = await Payment.findByPk(id);
         if (!payment) {
-            throw new Error('Payment non trouvé');
+            throw new Error('Payment was not found');
         }
         return await payment.update(updatedData);
     }
@@ -24,7 +24,7 @@ class PaymentRepository {
     async delete(id) {
         const payment = await Payment.findByPk(id);
         if (!payment) {
-            throw new Error('Payment non trouvé');
+            throw new Error('Payment was not found');
         }
         await payment.destroy();
         return true;

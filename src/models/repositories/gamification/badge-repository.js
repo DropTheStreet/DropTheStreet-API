@@ -2,7 +2,7 @@ const { Badge } = require('../../models/gamification/badge.model.js');
 
 class BadgeRepository {
     async create(badgeData) {
-        return await Badge.create(badgeData);
+        return Badge.create(badgeData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class BadgeRepository {
     async update(id, updatedData) {
         const badge = await Badge.findByPk(id);
         if (!badge) {
-            throw new Error('Badge non trouvé');
+            throw new Error('Badge was not found');
         }
         return await badge.update(updatedData);
     }
@@ -24,7 +24,7 @@ class BadgeRepository {
     async delete(id) {
         const badge = await Badge.findByPk(id);
         if (!badge) {
-            throw new Error('Badge non trouvé');
+            throw new Error('Badge was not found');
         }
         await badge.destroy();
         return true;

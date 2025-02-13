@@ -25,6 +25,14 @@ exports.Auction = sequelize.define('Auction', {
         type: DataTypes.DATE,
         allowNull: false
     },
+    id_product: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_user: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
 }, {
     tableName: 'Auction',
 })

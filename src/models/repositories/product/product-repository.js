@@ -2,7 +2,7 @@ const { Product } = require('../../models/product/product.model.js');
 
 class ProductRepository {
     async create(productData) {
-        return await Product.create(productData);
+        return Product.create(productData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class ProductRepository {
     async update(id, updatedData) {
         const product = await Product.findByPk(id);
         if (!product) {
-            throw new Error('Product not found');
+            throw new Error('Product was not found');
         }
         return await product.update(updatedData);
     }
@@ -24,7 +24,7 @@ class ProductRepository {
     async delete(id) {
         const product = await Product.findByPk(id);
         if (!product) {
-            throw new Error('Product not found');
+            throw new Error('Product was not found');
         }
         await product.destroy();
         return true;

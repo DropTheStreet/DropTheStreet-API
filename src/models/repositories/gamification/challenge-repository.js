@@ -2,7 +2,7 @@ const { Challenge } = require('../../models/gamification/challenge.model.js');
 
 class ChallengeRepository {
     async create(challengeData) {
-        return await Challenge.create(challengeData);
+        return Challenge.create(challengeData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class ChallengeRepository {
     async update(id, updatedData) {
         const challenge = await Challenge.findByPk(id);
         if (!challenge) {
-            throw new Error('Challenge non trouvé');
+            throw new Error('Challenge was not found');
         }
         return await challenge.update(updatedData);
     }
@@ -24,7 +24,7 @@ class ChallengeRepository {
     async delete(id) {
         const challenge = await Challenge.findByPk(id);
         if (!challenge) {
-            throw new Error('Challenge non trouvé');
+            throw new Error('Challenge was not found');
         }
         await challenge.destroy();
         return true;

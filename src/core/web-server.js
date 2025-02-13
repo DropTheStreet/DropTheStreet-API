@@ -15,6 +15,12 @@ const badgeRoutes = require('../controllers/gamification/badge.routes');
 const challengeRoutes = require('../controllers/gamification/challenge.routes');
 const userBadgeRoutes = require('../controllers/gamification/user_badge.routes');
 const userChallengeRoutes = require('../controllers/gamification/user_challenge.routes');
+const dropRoutes = require('../controllers/drop/drop.routes');
+const cartRoutes = require('../controllers/cart/shopping_cart.routes');
+const paymentStatusRoutes = require('../controllers/cart/payment_status.routes');
+const paymentRoutes = require('../controllers/cart/payment.routes');
+const auctionRoutes = require('../controllers/auction/auction.routes');
+const historyAuctionRoutes = require('../controllers/auction/history_auction.routes');
 const { sequelize } = require('../models/mysql.db')
 const http = require('http');
 const {initializeConfigMiddlewares, initializeErrorMiddlwares} = require("./middlewares");
@@ -37,6 +43,8 @@ const {Payment} = require("../models/models/cart/payment.model");
 const {ShoppingCart} = require("../models/models/cart/shopping_cart.model");
 const {Category} = require("../models/models/product/category.model");
 const {Role} = require("../models/models/user/role.model");
+const {UserBadge} = require("../models/models/gamification/user_badge.model");
+const {UserChallenge} = require("../models/models/gamification/user_challenge.model");
 
 class WebServer {
     app = undefined;
@@ -48,84 +56,91 @@ class WebServer {
         this.app = express();
         require('dotenv').config();
 
-        // Relation entre User et Role (Un utilisateur a un rôle)
-        User.belongsTo(Role, { foreignKey: 'id_role' });
+        // Relation entre User et Role
+        User.belongsTo(Role, { foreignKey: 'id_role', onDelete: 'CASCADE' });
         Role.hasMany(User, { foreignKey: 'id_role' });
 
-        // Relation entre Product et Category (Un produit appartient à une catégorie)
-        Product.belongsTo(Category, { foreignKey: 'id_category' });
-        Category.hasMany(Product, { foreignKey: 'id_category' });
+        // Relations liées aux enchères
+        User.hasMany(Auction, { foreignKey: 'id_user' });
+        Auction.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        // Relation entre Product et ShoppingCart (Un produit peut être dans plusieurs paniers)
-        Product.belongsToMany(ShoppingCart, { through: 'ShoppingCartProduct', foreignKey: 'id_product' });
-        ShoppingCart.belongsToMany(Product, { through: 'ShoppingCartProduct', foreignKey: 'id_shopping_cart' });
+        Product.hasMany(Auction, { foreignKey: 'id_product' });
+        Auction.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
-        // Relation entre User et ShoppingCart (Un utilisateur peut avoir plusieurs produits dans son panier)
-        User.hasMany(ShoppingCart, { foreignKey: 'id_user' });
-        ShoppingCart.belongsTo(User, { foreignKey: 'id_user' });
-
-        // Relation entre Product et Payment (Un produit peut être acheté dans un paiement)
-        Product.belongsToMany(Payment, { through: 'PaymentProduct', foreignKey: 'id_product' });
-        Payment.belongsToMany(Product, { through: 'PaymentProduct', foreignKey: 'id_payment' });
-
-        // Relation entre User et Payment (Un utilisateur peut effectuer plusieurs paiements)
-        User.hasMany(Payment, { foreignKey: 'id_user' });
-        Payment.belongsTo(User, { foreignKey: 'id_user' });
-
-        // Relation entre Payment et PaymentStatus (Un paiement a un statut)
-        Payment.belongsTo(PaymentStatus, { foreignKey: 'id_payment_status' });
-        PaymentStatus.hasMany(Payment, { foreignKey: 'id_payment_status' });
-
-        // Relation entre Auction et User (Un utilisateur peut participer à plusieurs enchères)
-        User.belongsToMany(Auction, { through: 'User_Auction', foreignKey: 'id_user' });
-        Auction.belongsToMany(User, { through: 'User_Auction', foreignKey: 'id_auction' });
-
-        // Relation entre Auction et HistoryAuction (Une enchère peut avoir plusieurs historiques)
         Auction.hasMany(HistoryAuction, { foreignKey: 'id_auction' });
-        HistoryAuction.belongsTo(Auction, { foreignKey: 'id_auction' });
+        HistoryAuction.belongsTo(Auction, { foreignKey: 'id_auction', onDelete: 'CASCADE' });
 
-        // Relation entre Badge et User (Un utilisateur peut avoir plusieurs badges)
-        User.belongsToMany(Badge, { through: 'User_Badge', foreignKey: 'id_user' });
-        Badge.belongsToMany(User, { through: 'User_Badge', foreignKey: 'id_badge' });
+        User.hasMany(HistoryAuction, { foreignKey: 'id_user' });
+        HistoryAuction.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        // Relation entre Challenge et User (Un utilisateur peut participer à plusieurs défis)
-        User.belongsToMany(Challenge, { through: 'User_Challenge', foreignKey: 'id_user' });
-        Challenge.belongsToMany(User, { through: 'User_Challenge', foreignKey: 'id_challenge' });
+        // Relations liées aux paiements
+        User.hasMany(Payment, { foreignKey: 'id_user' });
+        Payment.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        // Relation entre User et Notification (Un utilisateur peut recevoir plusieurs notifications)
-        User.hasMany(Notification, { foreignKey: 'id_user' });
-        Notification.belongsTo(User, { foreignKey: 'id_user' });
+        Product.hasMany(Payment, { foreignKey: 'id_product' });
+        Payment.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
-        // Relation entre Notification et Notification_Type (Une notification a un type)
-        Notification.belongsTo(NotificationType, { foreignKey: 'id_notification_type' });
-        NotificationType.hasMany(Notification, { foreignKey: 'id_notification_type' });
+        PaymentStatus.hasMany(Payment, { foreignKey: 'id_payment_status' });
+        Payment.belongsTo(PaymentStatus, { foreignKey: 'id_payment_status', onDelete: 'CASCADE' });
 
-        // Relation entre Product et Image (Un produit peut avoir plusieurs images)
-        Product.belongsToMany(Image, { through: 'ProductImage', foreignKey: 'id_product' });
-        Image.belongsToMany(Product, { through: 'ProductImage', foreignKey: 'id_image' });
+        // Relations liées au panier
+        User.hasMany(ShoppingCart, { foreignKey: 'id_user' });
+        ShoppingCart.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        // Relation entre User et Statistic (Un utilisateur peut avoir plusieurs statistiques)
-        User.hasMany(Statistic, { foreignKey: 'id_user' });
-        Statistic.belongsTo(User, { foreignKey: 'id_user' });
+        Product.hasMany(ShoppingCart, { foreignKey: 'id_product' });
+        ShoppingCart.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
-        // Relation entre Drop et Product (Un produit peut être associé à un drop)
-        Product.belongsToMany(Drop, { through: 'DropProduct', foreignKey: 'id_product' });
-        Drop.belongsToMany(Product, { through: 'DropProduct', foreignKey: 'id_drop' });
-
-        // Relation entre Product et ProductFavorite (Un produit peut être dans les favoris de plusieurs utilisateurs)
-        Product.belongsToMany(ProductFavorite, { through: 'ProductFavoriteProduct', foreignKey: 'id_product' });
-        ProductFavorite.belongsToMany(Product, { through: 'ProductFavoriteProduct', foreignKey: 'id_product_favorite' });
-
-        // Relation entre ProductImage et Product (Une image appartient à un produit)
-        ProductImage.belongsTo(Product, { foreignKey: 'id_product' });
+        // Relations liées aux produits et images
         Product.hasMany(ProductImage, { foreignKey: 'id_product' });
+        ProductImage.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
-        // Relation entre User et Support (Un utilisateur peut soumettre plusieurs demandes de support)
-        User.hasMany(Support, { foreignKey: 'id_user' });
-        Support.belongsTo(User, { foreignKey: 'id_user' });
+        Image.hasMany(ProductImage, { foreignKey: 'id_image' });
+        ProductImage.belongsTo(Image, { foreignKey: 'id_image', onDelete: 'CASCADE' });
+
+        // Relations liées aux favoris
+        User.hasMany(ProductFavorite, { foreignKey: 'id_user' });
+        ProductFavorite.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+
+        Product.hasMany(ProductFavorite, { foreignKey: 'id_product' });
+        ProductFavorite.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        // Relations liées aux badges
+        Badge.hasMany(UserBadge, { foreignKey: 'id_badge' });
+        UserBadge.belongsTo(Badge, { foreignKey: 'id_badge', onDelete: 'CASCADE' });
+
+        User.hasMany(UserBadge, { foreignKey: 'id_user' });
+        UserBadge.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+
+        // Relations liées aux challenges
+        Challenge.hasMany(UserChallenge, { foreignKey: 'id_challenge' });
+        UserChallenge.belongsTo(Challenge, { foreignKey: 'id_challenge', onDelete: 'CASCADE' });
+
+        User.hasMany(UserChallenge, { foreignKey: 'id_user' });
+        UserChallenge.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+
+        // Relations liées aux notifications
+        User.hasMany(Notification, { foreignKey: 'id_user' });
+        Notification.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+
+        NotificationType.hasMany(Notification, { foreignKey: 'id_notification_type' });
+        Notification.belongsTo(NotificationType, { foreignKey: 'id_notification_type', onDelete: 'CASCADE' });
+
+        // Relations liées aux catégories et statistiques
+        Category.hasMany(Product, { foreignKey: 'id_category' });
+        Product.belongsTo(Category, { foreignKey: 'id_category', onDelete: 'CASCADE' });
+
+        Product.hasOne(Statistic, { foreignKey: 'id_product' });
+        Statistic.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        // Relations liées aux drops
+        Product.hasMany(Drop, { foreignKey: 'id_product' });
+        Drop.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        // Relation avec le support
+        Support.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
         sequelize.sync();
-      //sequelize.sync({ force: true });
+      // sequelize.sync({ force: true });
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
@@ -162,6 +177,12 @@ class WebServer {
         this.app.use('/challenge', challengeRoutes.initializeRoutes());
         this.app.use('/user-badge', userBadgeRoutes.initializeRoutes());
         this.app.use('/user-challenge', userChallengeRoutes.initializeRoutes());
+        this.app.use('/drop', dropRoutes.initializeRoutes());
+        this.app.use('/cart', cartRoutes.initializeRoutes());
+        this.app.use('/payment-status', paymentStatusRoutes.initializeRoutes());
+        this.app.use('/payment', paymentRoutes.initializeRoutes());
+        this.app.use('/auction', auctionRoutes.initializeRoutes());
+        this.app.use('/history-auction', historyAuctionRoutes.initializeRoutes());
     }
 }
 

@@ -22,6 +22,10 @@ exports.Drop = sequelize.define('Drop', {
         allowNull: true,
         defaultValue:false
     },
+    id_product: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
 }, {
     tableName: 'Drop',
 })

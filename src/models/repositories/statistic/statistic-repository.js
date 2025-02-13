@@ -2,7 +2,7 @@ const { Statistic } = require('../../models/statistic/statistic.model.js');
 
 class StatisticRepository {
     async create(statisticData) {
-        return await Statistic.create(statisticData);
+        return Statistic.create(statisticData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class StatisticRepository {
     async update(id, updatedData) {
         const statistic = await Statistic.findByPk(id);
         if (!statistic) {
-            throw new Error('Statistic not found');
+            throw new Error('Statistic was not found');
         }
         return await statistic.update(updatedData);
     }
@@ -24,7 +24,7 @@ class StatisticRepository {
     async delete(id) {
         const statistic = await Statistic.findByPk(id);
         if (!statistic) {
-            throw new Error('Statistic not found');
+            throw new Error('Statistic was not found');
         }
         await statistic.destroy();
         return true;

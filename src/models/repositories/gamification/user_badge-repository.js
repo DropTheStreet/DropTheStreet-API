@@ -2,29 +2,29 @@ const { UserBadge } = require('../../models/gamification/user_badge.model.js');
 
 class UserBadgeRepository {
     async create(userBadgeData) {
-        return await User_Badge.create(userBadgeData);
+        return UserBadge.create(userBadgeData);
     }
 
     async findById(id) {
-        return await User_Badge.findByPk(id);
+        return await UserBadge.findByPk(id);
     }
 
     async findAll() {
-        return await User_Badge.findAll();
+        return await UserBadge.findAll();
     }
 
     async update(id, updatedData) {
-        const userBadge = await User_Badge.findByPk(id);
+        const userBadge = await UserBadge.findByPk(id);
         if (!userBadge) {
-            throw new Error('User_Badge non trouvé');
+            throw new Error('User Badge was not found');
         }
         return await userBadge.update(updatedData);
     }
 
     async delete(id) {
-        const userBadge = await User_Badge.findByPk(id);
+        const userBadge = await UserBadge.findByPk(id);
         if (!userBadge) {
-            throw new Error('User_Badge non trouvé');
+            throw new Error('User Badge was not found');
         }
         await userBadge.destroy();
         return true;

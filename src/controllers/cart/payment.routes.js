@@ -6,38 +6,44 @@ const { PaymentStatus } = require('../../models/models/cart/payment_status.model
 const { User } = require('../../models/models/user/user.model');
 const { Product } = require('../../models/models/product/product.model');
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
-        // Récupérer un utilisateur, un produit et un statut de paiement existant
-        const user = await User.findOne();
-        const product = await Product.findOne();
-        const paymentStatus = await PaymentStatus.findOne();
 
-        if (!user || !product || !paymentStatus) {
-            return res.status(400).send({ message: 'Utilisateur, produit ou statut de paiement introuvable.' });
+        const users = await User.findAll();
+        if (users.length < 3) {
+            return res.status(400).send({ message: 'Not enough users for seeding' });
         }
 
-        // Liste des paiements fictifs à ajouter
+        const products = await Product.findAll();
+        if (products.length < 3) {
+            return res.status(400).send({ message: 'Not enough products for seeding' });
+        }
+
+        const paymentStatuses = await PaymentStatus.findAll();
+        if (products.length < 3) {
+            return res.status(400).send({ message: 'Not enough paymentStatuses for seeding' });
+        }
+
+
         const payments = [
             {
-                id_user: user.id_user,
-                id_product: product.id_product_favorite,
-                id_payment_status: paymentStatus.id_payment_status,
+                id_user: users[0].id_user,
+                id_product: products[0].id_product,
+                id_payment_status: paymentStatuses[0].id_payment_status,
                 amount_total: 150.00,
                 delivery_address: '123 Rue Exemple, Paris, France',
                 payment_date: new Date(),
             },
             {
-                id_user: user.id_user,
-                id_product: product.id_product_favorite,
-                id_payment_status: paymentStatus.id_payment_status,
+                id_user: users[1].id_user,
+                id_product: products[1].id_product,
+                id_payment_status: paymentStatuses[1].id_payment_status,
                 amount_total: 100.50,
                 delivery_address: '456 Avenue Exemple, Lyon, France',
                 payment_date: new Date(),
             },
         ];
 
-        // Création des paiements
         for (let payment of payments) {
             await Payment.create({
                 id_payment: uuidv4(),
@@ -48,17 +54,15 @@ router.get('/seeder', async (req, res) => {
                 delivery_address: payment.delivery_address,
                 payment_date: payment.payment_date,
             });
-            console.log(`Paiement ajouté pour l'utilisateur ${payment.id_user}`);
+            console.log(`Payment was added successfully ${payment.id_user}`);
         }
 
-        // Récupérer tous les paiements
         const allPayments = await Payment.findAll();
 
-        // Retourner la liste des paiements
         res.status(200).send(allPayments);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des paiements', error: e.message });
+        res.status(500).send({ message: 'Error during adding of payments', error: e.message });
     }
 });
 
@@ -67,7 +71,7 @@ router.get('/', async (req, res) => {
         const payments = await Payment.findAll();
         res.status(200).send(payments);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des paiements', error: e.message });
+        res.status(500).send({ message: 'Error during getting all payments', error: e.message });
     }
 });
 

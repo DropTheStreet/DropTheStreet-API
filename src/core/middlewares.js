@@ -66,6 +66,18 @@ const tokenMiddlware = (app) => {
                     { url: "/challenge/seeder", methods: ["POST"] },
                     { url: "/user-challenge/", methods: ["GET"] },
                     { url: "/user-challenge/seeder", methods: ["POST"] },
+                    { url: "/drop/", methods: ["GET"] },
+                    { url: "/drop/seeder", methods: ["POST"] },
+                    { url: "/cart/", methods: ["GET"] },
+                    { url: "/cart/seeder", methods: ["POST"] },
+                    { url: "/payment-status/", methods: ["GET"] },
+                    { url: "/payment-status/seeder", methods: ["POST"] },
+                    { url: "/payment/", methods: ["GET"] },
+                    { url: "/payment/seeder", methods: ["POST"] },
+                    { url: "/auction/", methods: ["GET"] },
+                    { url: "/auction/seeder", methods: ["POST"] },
+                    { url: "/history-auction/", methods: ["GET"] },
+                    { url: "/history-auction/seeder", methods: ["POST"] },
                     { url: "/all/seeder", methods: ["POST"] },
                 ]
             })

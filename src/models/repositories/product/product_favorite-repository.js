@@ -2,7 +2,7 @@ const { ProductFavorite } = require('../../models/product/product_favorite.model
 
 class ProductFavoriteRepository {
     async create(productFavoriteData) {
-        return await ProductFavorite.create(productFavoriteData);
+        return ProductFavorite.create(productFavoriteData);
     }
 
     async findById(id) {
@@ -16,7 +16,7 @@ class ProductFavoriteRepository {
     async delete(id) {
         const productFavorite = await ProductFavorite.findByPk(id);
         if (!productFavorite) {
-            throw new Error('Product favorite not found');
+            throw new Error('Product favorite was not found');
         }
         await productFavorite.destroy();
         return true;

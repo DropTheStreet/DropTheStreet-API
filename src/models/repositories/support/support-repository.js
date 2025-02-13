@@ -2,7 +2,7 @@ const { Support } = require('../../models/support/support.model.js');
 
 class SupportRepository {
     async create(supportData) {
-        return await Support.create(supportData);
+        return Support.create(supportData);
     }
 
     async findById(id) {

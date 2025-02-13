@@ -2,7 +2,7 @@ const { HistoryAuction } = require('../../models/auction/history_auction.model.j
 
 class HistoryAuctionRepository {
     async create(historyAuctionData) {
-        return await HistoryAuction.create(historyAuctionData);
+        return HistoryAuction.create(historyAuctionData);
     }
 
     async findById(id) {
@@ -22,7 +22,7 @@ class HistoryAuctionRepository {
     async update(id, updatedData) {
         const historyAuction = await HistoryAuction.findByPk(id);
         if (!historyAuction) {
-            throw new Error('HistoryAuction non trouvé');
+            throw new Error('HistoryAuction was not found');
         }
         return await historyAuction.update(updatedData);
     }
@@ -30,7 +30,7 @@ class HistoryAuctionRepository {
     async delete(id) {
         const historyAuction = await HistoryAuction.findByPk(id);
         if (!historyAuction) {
-            throw new Error('HistoryAuction non trouvé');
+            throw new Error('HistoryAuction was not found');
         }
         await historyAuction.destroy();
         return true;

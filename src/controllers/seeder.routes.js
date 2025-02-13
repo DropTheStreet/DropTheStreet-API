@@ -194,6 +194,85 @@ router.post('/seeder', async (req, res) => {
 
         console.log('User challenge seeder was created successfully');
 
+        //Drop
+
+        const dropSeederResponse = await fetch('http://localhost:3000/drop/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!dropSeederResponse.ok) {
+            console.error('Error during execution of drop seeder');
+        }
+
+        console.log('Drop seeder was created successfully');
+
+        //Shopping cart
+
+        const cartSeederResponse = await fetch('http://localhost:3000/cart/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!cartSeederResponse.ok) {
+            console.error('Error during execution of cart seeder');
+        }
+
+        console.log('Cart seeder was created successfully');
+
+        //Payment status
+
+        const paymentStatusSeederResponse = await fetch('http://localhost:3000/payment-status/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!paymentStatusSeederResponse.ok) {
+            console.error('Error during execution of payment status seeder');
+        }
+
+        console.log('Payment status seeder was created successfully');
+
+        //Payment
+
+        const paymentSeederResponse = await fetch('http://localhost:3000/payment/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!paymentSeederResponse.ok) {
+            console.error('Error during execution of payment seeder');
+        }
+
+        console.log('Payment seeder was created successfully');
+
+        //Auction
+
+        const auctionSeederResponse = await fetch('http://localhost:3000/auction/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!auctionSeederResponse.ok) {
+            console.error('Error during execution of auction seeder');
+        }
+
+        console.log('Auction seeder was created successfully');
+
+
+        //History auction
+
+        const historyAuctionSeederResponse = await fetch('http://localhost:3000/history-auction/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!historyAuctionSeederResponse.ok) {
+            console.error('Error during execution of history auction seeder');
+        }
+
+        console.log('History auction seeder was created successfully');
+
         res.status(200).send({ message: 'All seeders was executed successfully' });
 
     } catch (error) {

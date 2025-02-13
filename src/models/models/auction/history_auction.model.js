@@ -13,7 +13,15 @@ exports.HistoryAuction = sequelize.define('HistoryAuction', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    id_user: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_auction: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
     //date -> created at
 }, {
-    tableName: 'History_Auction',
+    tableName: 'HistoryAuction',
 })

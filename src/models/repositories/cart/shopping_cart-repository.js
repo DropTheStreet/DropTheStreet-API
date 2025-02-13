@@ -2,7 +2,7 @@ const { ShoppingCart } = require('../../models/cart/shopping_cart.model.js');
 
 class ShoppingCartRepository {
     async create(shoppingCartData) {
-        return await ShoppingCart.create(shoppingCartData);
+        return ShoppingCart.create(shoppingCartData);
     }
 
     async findById(id) {
@@ -27,7 +27,7 @@ class ShoppingCartRepository {
     async update(id, updatedData) {
         const shoppingCart = await ShoppingCart.findByPk(id);
         if (!shoppingCart) {
-            throw new Error('ShoppingCart non trouvé');
+            throw new Error('ShoppingCart was not found');
         }
         return await shoppingCart.update(updatedData);
     }
@@ -35,7 +35,7 @@ class ShoppingCartRepository {
     async delete(id) {
         const shoppingCart = await ShoppingCart.findByPk(id);
         if (!shoppingCart) {
-            throw new Error('ShoppingCart non trouvé');
+            throw new Error('ShoppingCart was not found');
         }
         await shoppingCart.destroy();
         return true;

@@ -2,32 +2,43 @@ const express = require('express');
 const router = express.Router();
 const { ShoppingCart } = require('../../models/models/cart/shopping_cart.model');
 const { v4: uuidv4 } = require('uuid');
+const {Product} = require("../../models/models/product/product.model");
+const {User} = require("../../models/models/user/user.model");
 
-router.get('/seeder', async (req, res) => {
+router.post('/seeder', async (req, res) => {
     try {
-        // Articles à ajouter dans le panier
+
+        const users = await User.findAll();
+        if (users.length < 3) {
+            return res.status(400).send({ message: 'Not enough users for seeding' });
+        }
+
+        const products = await Product.findAll();
+        if (products.length < 3) {
+            return res.status(400).send({ message: 'Not enough products for seeding' });
+        }
+
         const cartItems = [
             {
-                id_user: uuidv4(), // ID utilisateur, tu peux le remplacer par un ID existant
-                id_product: uuidv4(), // ID produit, tu peux le remplacer par un ID existant
+                id_user: users[0].id_user,
+                id_product: products[0].id_product,
                 quantity: 3,
                 size: 'M',
             },
             {
-                id_user: uuidv4(),
-                id_product: uuidv4(),
+                id_user: users[1].id_user,
+                id_product: products[1].id_product,
                 quantity: 1,
                 size: 'L',
             },
             {
-                id_user: uuidv4(),
-                id_product: uuidv4(),
+                id_user: users[2].id_user,
+                id_product: products[2].id_product,
                 quantity: 2,
                 size: 'S',
             }
         ];
 
-        // Création des articles dans le panier
         for (let item of cartItems) {
             await ShoppingCart.create({
                 id_shopping_cart: uuidv4(),
@@ -35,20 +46,18 @@ router.get('/seeder', async (req, res) => {
                 id_product: item.id_product,
                 quantity: item.quantity,
                 size: item.size,
-                createdAt: new Date(),  // Date de création
-                updatedAt: new Date(),  // Date de mise à jour
+                createdAt: new Date(),
+                updatedAt: new Date(),
             });
-            console.log(`Article ajouté au panier : ${item.id_user} - ${item.id_product} - ${item.size}`);
+            console.log(`Article was added to the cart : ${item.id_user} - ${item.id_product} - ${item.size}`);
         }
 
-        // Récupérer tous les articles du panier
         const cart = await ShoppingCart.findAll();
 
-        // Retourner la liste des articles
         res.status(200).send(cart);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Erreur lors de l’ajout des articles au panier', error: e.message });
+        res.status(500).send({ message: 'Error during adding article to the cart', error: e.message });
     }
 });
 
@@ -57,7 +66,7 @@ router.get('/', async (req, res) => {
         const cart = await ShoppingCart.findAll();
         res.status(200).send(cart);
     } catch (e) {
-        res.status(500).send({ message: 'Erreur lors de la récupération des articles du panier', error: e.message });
+        res.status(500).send({ message: 'Error during getting all carts', error: e.message });
     }
 });
 
