@@ -79,6 +79,7 @@ const tokenMiddlware = (app) => {
                     { url: "/history-auction/", methods: ["GET"] },
                     { url: "/history-auction/seeder", methods: ["POST"] },
                     { url: "/all/seeder", methods: ["POST"] },
+                    { url: "/user/register", methods: ["POST"] },
                 ]
             })
     );

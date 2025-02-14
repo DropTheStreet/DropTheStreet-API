@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
+const RoleRepository = require("../../models/repositories/user/role-repository");
 const {loginUser} = require("../../models/repositories/user/user-repository");
 
 router.post('/seeder', async (req, res) => {
@@ -117,6 +118,41 @@ router.post('/login', async (req, res) => {
         res.status(401).json({ message: 'Invalid email or password' });
     }
 });
+
+router.post('/register', async (req, res) => {
+    try {
+        const { pseudo, email, password } = req.body;
+
+        if (!pseudo || !email || !password) {
+            return res.status(400).json({ message: "Tous les champs sont requis." });
+        }
+
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ message: "Cet email est déjà utilisé." });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            pseudo,
+            email,
+            password: hashedPassword,
+            bio: "",
+            photo: null,
+            dropcoins: 10,
+            id_role: await RoleRepository.findIdByName("User"),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        res.status(201).json({ message: "Utilisateur créé avec succès", user });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ message: "Erreur serveur", error: e.message });
+    }
+});
+
 
 module.exports = {
     initializeRoutes: () => router,
