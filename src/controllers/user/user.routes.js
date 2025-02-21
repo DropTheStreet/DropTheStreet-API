@@ -5,6 +5,8 @@ const { User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
 const RoleRepository = require("../../models/repositories/user/role-repository");
 const {loginUser} = require("../../models/repositories/user/user-repository");
+const {createTransport} = require("nodemailer");
+const { v4: uuidv4 } = require("uuid");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -127,9 +129,19 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: "Tous les champs sont requis." });
         }
 
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
+        const existingEmail = await User.findOne({ where: { email } });
+        if (existingEmail) {
             return res.status(400).json({ message: "Cet email est déjà utilisé." });
+        }
+
+        const existingPseudo = await User.findOne({ where: { pseudo } });
+        if (existingPseudo) {
+            return res.status(400).json({ message: "Ce pseudo est déjà utilisé." });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial." });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -150,6 +162,72 @@ router.post('/register', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ message: "Erreur serveur", error: e.message });
+    }
+});
+
+router.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+
+    const resetToken = uuidv4();  // Génération du token
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 3600000; // Expire dans 1h
+    await user.save();
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const transporter = createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    await transporter.sendMail({
+        from: '"Support DropTheStreet" <support@dropthestreet.com>',
+        to: user.email,
+        subject: "Réinitialisation du mot de passe",
+        text: `Cliquez ici pour réinitialiser votre mot de passe: ${resetLink}`,
+        html: `<p>Cliquez ici pour réinitialiser votre mot de passe :</p>
+               <a href="${resetLink}">Réinitialiser le mot de passe</a>`,
+    });
+
+    res.json({ message: "Un email a été envoyé." });
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    try {
+        const user = await User.findOne({
+            where: {resetToken: token}
+        });
+
+        if (!user || user.resetTokenExpiry <= Date.now()) {
+            return res.status(400).json({message: "Lien de réinitialisation invalide ou expiré."});
+        }
+        if (await bcrypt.compare(password, user.password))
+            return res.status(400).json({ message: "Le mot de passe doit être différent du précédent" });
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial." });
+        }
+
+        user.password = await bcrypt.hash(password, 10);
+        user.resetToken = null;
+        user.resetTokenExpiry = null;
+
+        await user.save();
+
+        res.json({ message: "Mot de passe mis à jour avec succès !" });
+    } catch (error) {
+        console.error("Erreur lors de la réinitialisation :", error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
     }
 });
 

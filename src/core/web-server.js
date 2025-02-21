@@ -139,8 +139,7 @@ class WebServer {
         // Relation avec le support
         Support.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        sequelize.sync();
-      // sequelize.sync({ force: true });
+        sequelize.sync({ force: false });
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();

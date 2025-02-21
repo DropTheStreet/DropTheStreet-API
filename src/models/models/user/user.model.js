@@ -38,6 +38,14 @@ exports.User = sequelize.define('User', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    resetToken: {
+        type: DataTypes.UUID,
+        allowNull: true
+    },
+    resetTokenExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true
+    }
 }, {
     tableName: 'User',
 })
