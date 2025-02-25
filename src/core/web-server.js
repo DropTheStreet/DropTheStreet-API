@@ -45,6 +45,8 @@ const {Category} = require("../models/models/product/category.model");
 const {Role} = require("../models/models/user/role.model");
 const {UserBadge} = require("../models/models/gamification/user_badge.model");
 const {UserChallenge} = require("../models/models/gamification/user_challenge.model");
+const passport = require('passport');
+const session = require('express-session');
 
 class WebServer {
     app = undefined;
@@ -55,6 +57,19 @@ class WebServer {
     constructor() {
         this.app = express();
         require('dotenv').config();
+
+        this.app.use(session({
+            secret: process.env.SESSION_SECRET || 'your-secret-key',
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            }
+        }));
+
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
 
         // Relation entre User et Role
         User.belongsTo(Role, { foreignKey: 'id_role', onDelete: 'CASCADE' });

@@ -20,7 +20,7 @@ exports.User = sequelize.define('User', {
     },
     password: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     bio: {
         type: DataTypes.STRING,
@@ -45,7 +45,12 @@ exports.User = sequelize.define('User', {
     resetTokenExpiry: {
         type: DataTypes.DATE,
         allowNull: true
-    }
+    },
+    googleId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true
+    },
 }, {
     tableName: 'User',
 })

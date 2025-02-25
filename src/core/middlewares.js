@@ -82,6 +82,8 @@ const tokenMiddlware = (app) => {
                     { url: "/user/register", methods: ["POST"] },
                     { url: "/user/forgot-password", methods: ["POST"] },
                     { url: /^\/user\/reset-password\/.*/, methods: ["POST"] }, // 🔥 Exclusion avec regex
+                    { url: "/user/auth/google", methods: ["GET"] },
+                    { url: "/user/auth/google/callback", methods: ["GET"] },
                 ]
             })
     );

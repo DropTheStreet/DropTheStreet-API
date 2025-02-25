@@ -7,6 +7,9 @@ const RoleRepository = require("../../models/repositories/user/role-repository")
 const {loginUser} = require("../../models/repositories/user/user-repository");
 const {createTransport} = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -231,6 +234,103 @@ router.post('/reset-password/:token', async (req, res) => {
     }
 });
 
+passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: `${process.env.API_URL}/user/auth/google/callback`,
+        passReqToCallback: true
+    },
+    async (req, accessToken, refreshToken, profile, done) => {
+        try {
+            // Rechercher l'utilisateur par son googleId
+            let user = await User.findOne({ where: { googleId: profile.id } });
+
+            if (!user) {
+                // Si l'utilisateur n'existe pas, vérifier par email
+                const email = profile.emails[0].value;
+                const existingUser = await User.findOne({ where: { email } });
+
+                if (existingUser) {
+                    // Si l'email existe déjà, mettre à jour avec googleId
+                    existingUser.googleId = profile.id;
+                    if (profile.photos && profile.photos.length > 0) {
+                        existingUser.photo = profile.photos[0].value;
+                    }
+                    await existingUser.save();
+                    return done(null, existingUser);
+                }
+
+                // Créer un nouvel utilisateur
+                const userRoleId = await RoleRepository.findIdByName("User");
+                const pseudo = profile.displayName || email.split('@')[0];
+
+                // Vérifier si le pseudo existe déjà
+                const existingPseudo = await User.findOne({ where: { pseudo } });
+                let finalPseudo = pseudo;
+                if (existingPseudo) {
+                    // Ajouter un suffixe aléatoire au pseudo
+                    finalPseudo = `${pseudo}${Math.floor(Math.random() * 1000)}`;
+                }
+
+                const newUser = await User.create({
+                    pseudo: finalPseudo,
+                    email: email,
+                    googleId: profile.id,
+                    bio: "",
+                    photo: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null,
+                    dropcoins: 10,
+                    id_role: userRoleId,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+
+                return done(null, newUser);
+            }
+
+            return done(null, user);
+        } catch (error) {
+            return done(error, null);
+        }
+    }
+));
+
+// Sérialisation et désérialisation de passport
+passport.serializeUser((user, done) => {
+    done(null, user.id_user);
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findByPk(id);
+        done(null, user);
+    } catch (error) {
+        done(error, null);
+    }
+});
+
+router.get('/auth/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+}));
+
+router.get('/auth/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/auth` }),
+    async (req, res) => {
+        try {
+            // Générer un JWT pour l'utilisateur
+            const token = jwt.sign(
+                { userId: req.user.id_user, email: req.user.email, role: req.user.id_role },
+                process.env.SECRET_KEY,
+                { expiresIn: '24h' }
+            );
+
+            // Rediriger vers le frontend avec le token
+            res.redirect(`${process.env.FRONTEND_URL}/authentification?token=${token}`);
+        } catch (error) {
+            console.error("Erreur lors de l'authentification Google:", error);
+            res.redirect(`${process.env.FRONTEND_URL}/authentification?error=auth_failed`);
+        }
+    }
+);
 
 module.exports = {
     initializeRoutes: () => router,
