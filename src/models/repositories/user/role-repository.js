@@ -30,6 +30,23 @@ class RoleRepository {
         }
     }
 
+    async findNameById(id_role) {
+        try {
+            const role = await Role.findOne({
+                where: { id_role }
+            });
+
+            if (!role) {
+                throw new Error(`Le rôle avec l'id "${id_role}" n'existe pas.`);
+            }
+
+            return role.name;
+        } catch (error) {
+            console.error("Erreur lors de la récupération du rôle :", error.message);
+            throw error;
+        }
+    }
+
     async update(id, updatedData) {
         const role = await Role.findByPk(id);
         if (!role) {

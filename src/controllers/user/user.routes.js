@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-const { User } = require('../../models/models/user/user.model');
+const {User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
 const RoleRepository = require("../../models/repositories/user/role-repository");
 const {loginUser} = require("../../models/repositories/user/user-repository");
@@ -318,7 +318,7 @@ router.get('/auth/google/callback',
         try {
             // Générer un JWT pour l'utilisateur
             const token = jwt.sign(
-                { userId: req.user.id_user, email: req.user.email, role: req.user.id_role },
+                { userId: req.user.id_user, email: req.user.email, role: await RoleRepository.findNameById(req.user.id_role) },
                 process.env.SECRET_KEY,
                 { expiresIn: '24h' }
             );
