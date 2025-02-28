@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { ShoppingCart } = require('../../models/models/cart/shopping_cart.model');
+const { CartItem } = require('../../models/models/cart/cart_item.model');
 const { v4: uuidv4 } = require('uuid');
-const {Product} = require("../../models/models/product/product.model");
-const {User} = require("../../models/models/user/user.model");
+const { Product } = require('../../models/models/product/product.model');
+const { User } = require('../../models/models/user/user.model');
 
 router.post('/seeder', async (req, res) => {
     try {
-
         const users = await User.findAll();
         if (users.length < 3) {
             return res.status(400).send({ message: 'Not enough users for seeding' });
@@ -18,55 +18,65 @@ router.post('/seeder', async (req, res) => {
             return res.status(400).send({ message: 'Not enough products for seeding' });
         }
 
-        const cartItems = [
+        const cartData = [
             {
                 id_user: users[0].id_user,
-                id_product: products[0].id_product,
-                quantity: 3,
-                size: 'M',
+                items: [
+                    { id_product: products[0].id_product, quantity: 2, size: 'M' },
+                    { id_product: products[1].id_product, quantity: 1, size: 'L' },
+                ],
             },
             {
                 id_user: users[1].id_user,
-                id_product: products[1].id_product,
-                quantity: 1,
-                size: 'L',
+                items: [
+                    { id_product: products[1].id_product, quantity: 3, size: 'S' },
+                    { id_product: products[2].id_product, quantity: 1, size: 'M' },
+                ],
             },
             {
                 id_user: users[2].id_user,
-                id_product: products[2].id_product,
-                quantity: 2,
-                size: 'S',
-            }
+                items: [
+                    { id_product: products[2].id_product, quantity: 1, size: 'L' },
+                ],
+            },
         ];
 
-        for (let item of cartItems) {
-            await ShoppingCart.create({
+        for (let cart of cartData) {
+            const newCart = await ShoppingCart.create({
                 id_shopping_cart: uuidv4(),
-                id_user: item.id_user,
-                id_product: item.id_product,
-                quantity: item.quantity,
-                size: item.size,
+                id_user: cart.id_user,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
-            console.log(`Article was added to the cart : ${item.id_user} - ${item.id_product} - ${item.size}`);
+
+            for (let item of cart.items) {
+                await CartItem.create({
+                    id_cart_item: uuidv4(),
+                    id_shopping_cart: newCart.id_shopping_cart,
+                    id_product: item.id_product,
+                    quantity: item.quantity,
+                    size: item.size,
+                });
+            }
+
+            console.log(`ShoppingCart created successfully for user ${cart.id_user}`);
         }
 
-        const cart = await ShoppingCart.findAll();
+        const allCarts = await ShoppingCart.findAll({ include: CartItem });
 
-        res.status(200).send(cart);
+        res.status(200).send(allCarts);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Error during adding article to the cart', error: e.message });
+        res.status(500).send({ message: 'Error adding items to the cart', error: e.message });
     }
 });
 
 router.get('/', async (req, res) => {
     try {
-        const cart = await ShoppingCart.findAll();
-        res.status(200).send(cart);
+        const carts = await ShoppingCart.findAll({ include: CartItem });
+        res.status(200).send(carts);
     } catch (e) {
-        res.status(500).send({ message: 'Error during getting all carts', error: e.message });
+        res.status(500).send({ message: 'Error getting all carts', error: e.message });
     }
 });
 

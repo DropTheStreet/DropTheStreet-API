@@ -47,6 +47,8 @@ const {UserBadge} = require("../models/models/gamification/user_badge.model");
 const {UserChallenge} = require("../models/models/gamification/user_challenge.model");
 const passport = require('passport');
 const session = require('express-session');
+const {PaymentDetail} = require("../models/models/cart/payment_detail.model");
+const {CartItem} = require("../models/models/cart/cart_item.model");
 
 class WebServer {
     app = undefined;
@@ -92,18 +94,28 @@ class WebServer {
         User.hasMany(Payment, { foreignKey: 'id_user' });
         Payment.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        Product.hasMany(Payment, { foreignKey: 'id_product' });
-        Payment.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
-
         PaymentStatus.hasMany(Payment, { foreignKey: 'id_payment_status' });
         Payment.belongsTo(PaymentStatus, { foreignKey: 'id_payment_status', onDelete: 'CASCADE' });
 
-        // Relations liées au panier
-        User.hasMany(ShoppingCart, { foreignKey: 'id_user' });
+        // Relations entre Payment et Product via PaymentDetail
+        Payment.hasMany(PaymentDetail, { foreignKey: 'id_payment' });
+        PaymentDetail.belongsTo(Payment, { foreignKey: 'id_payment', onDelete: 'CASCADE' });
+
+        Product.hasMany(PaymentDetail, { foreignKey: 'id_product' });
+        PaymentDetail.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        // Relations entre l'utilisateur et son panier
+        User.hasOne(ShoppingCart, { foreignKey: 'id_user' });
         ShoppingCart.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        Product.hasMany(ShoppingCart, { foreignKey: 'id_product' });
-        ShoppingCart.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+        // Relations entre ShoppingCart et CartItem
+        ShoppingCart.hasMany(CartItem, { foreignKey: 'id_shopping_cart' });
+        CartItem.belongsTo(ShoppingCart, { foreignKey: 'id_shopping_cart', onDelete: 'CASCADE' });
+
+        // Relations entre CartItem et Product
+        Product.hasMany(CartItem, { foreignKey: 'id_product' });
+        CartItem.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
 
         // Relations liées aux produits et images
         Product.hasMany(ProductImage, { foreignKey: 'id_product' });

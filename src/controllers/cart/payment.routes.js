@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { Payment } = require('../../models/models/cart/payment.model');
-const { v4: uuidv4 } = require('uuid');
+const { PaymentDetail } = require('../../models/models/cart/payment_detail.model');
 const { PaymentStatus } = require('../../models/models/cart/payment_status.model');
 const { User } = require('../../models/models/user/user.model');
 const { Product } = require('../../models/models/product/product.model');
+const { v4: uuidv4 } = require('uuid');
 
 router.post('/seeder', async (req, res) => {
     try {
-
         const users = await User.findAll();
         if (users.length < 3) {
             return res.status(400).send({ message: 'Not enough users for seeding' });
@@ -20,44 +20,59 @@ router.post('/seeder', async (req, res) => {
         }
 
         const paymentStatuses = await PaymentStatus.findAll();
-        if (products.length < 3) {
-            return res.status(400).send({ message: 'Not enough paymentStatuses for seeding' });
+        if (paymentStatuses.length < 3) {
+            return res.status(400).send({ message: 'Not enough payment statuses for seeding' });
         }
-
 
         const payments = [
             {
                 id_user: users[0].id_user,
-                id_product: products[0].id_product,
                 id_payment_status: paymentStatuses[0].id_payment_status,
-                amount_total: 150.00,
+                amount_total: 250.00,
                 delivery_address: '123 Rue Exemple, Paris, France',
                 payment_date: new Date(),
+                products: [
+                    { id_product: products[0].id_product, quantity: 2, price_at_purchase: 50.00 },
+                    { id_product: products[1].id_product, quantity: 1, price_at_purchase: 150.00 },
+                ],
             },
             {
                 id_user: users[1].id_user,
-                id_product: products[1].id_product,
                 id_payment_status: paymentStatuses[1].id_payment_status,
-                amount_total: 100.50,
+                amount_total: 180.00,
                 delivery_address: '456 Avenue Exemple, Lyon, France',
                 payment_date: new Date(),
+                products: [
+                    { id_product: products[1].id_product, quantity: 1, price_at_purchase: 100.00 },
+                    { id_product: products[2].id_product, quantity: 2, price_at_purchase: 40.00 },
+                ],
             },
         ];
 
         for (let payment of payments) {
-            await Payment.create({
+            const newPayment = await Payment.create({
                 id_payment: uuidv4(),
                 id_user: payment.id_user,
-                id_product: payment.id_product,
                 id_payment_status: payment.id_payment_status,
                 amount_total: payment.amount_total,
                 delivery_address: payment.delivery_address,
                 payment_date: payment.payment_date,
             });
-            console.log(`Payment was added successfully ${payment.id_user}`);
+
+            for (let product of payment.products) {
+                await PaymentDetail.create({
+                    id_payment_detail: uuidv4(),
+                    id_payment: newPayment.id_payment,
+                    id_product: product.id_product,
+                    quantity: product.quantity,
+                    price_at_purchase: product.price_at_purchase,
+                });
+            }
+
+            console.log(`Payment created successfully for user ${payment.id_user}`);
         }
 
-        const allPayments = await Payment.findAll();
+        const allPayments = await Payment.findAll({ include: PaymentDetail });
 
         res.status(200).send(allPayments);
     } catch (e) {
@@ -68,10 +83,10 @@ router.post('/seeder', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const payments = await Payment.findAll();
+        const payments = await Payment.findAll({ include: PaymentDetail });
         res.status(200).send(payments);
     } catch (e) {
-        res.status(500).send({ message: 'Error during getting all payments', error: e.message });
+        res.status(500).send({ message: 'Error getting all payments', error: e.message });
     }
 });
 

@@ -1,36 +1,35 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../mysql.db');
 
-exports.Payment = sequelize.define('Payment', {
-    id_payment: {
+exports.PaymentDetail = sequelize.define('PaymentDetail', {
+    id_payment_detail: {
         type: DataTypes.UUID,
         primaryKey: true,
         allowNull: false,
         defaultValue: DataTypes.UUIDV4
     },
-    id_user: {
+    id_payment: {
         type: DataTypes.UUID,
         allowNull: false
     },
-    id_payment_status: {
+    id_product: {
         type: DataTypes.UUID,
         allowNull: false
     },
-    amount_total: {
+    quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+            min: 1
+        }
+    },
+    price_at_purchase: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         validate: {
             min: 0
         }
-    },
-    delivery_address: {
-        type: DataTypes.STRING(255),
-        allowNull: false
-    },
-    payment_date: {
-        type: DataTypes.DATE,
-        allowNull: false
     }
 }, {
-    tableName: 'Payment'
+    tableName: 'PaymentDetail'
 });
