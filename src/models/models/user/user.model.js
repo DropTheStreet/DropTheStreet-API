@@ -27,7 +27,7 @@ exports.User = sequelize.define('User', {
         allowNull: true
     },
     photo:{
-        type: DataTypes.BLOB,
+        type: DataTypes.BLOB('medium'),
         allowNull: true
     },
     dropcoins: {

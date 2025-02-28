@@ -4,9 +4,14 @@ const router = express.Router();
 const { User } = require('../../models/models/user/user.model');
 const {Role} = require("../../models/models/user/role.model");
 const RoleRepository = require("../../models/repositories/user/role-repository");
-const {loginUser} = require("../../models/repositories/user/user-repository");
+const UserRepository = require("../../models/repositories/user/user-repository");
+const {loginUser, getUserById, uploadUserPhoto} = require("../../models/repositories/user/user-repository");
 const {createTransport} = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const {memoryStorage} = require("multer");
+const multer = require("multer");
+const {UserBadge} = require("../../models/models/gamification/user_badge.model");
+const {Badge} = require("../../models/models/gamification/badge.model");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -158,6 +163,17 @@ router.post('/register', async (req, res) => {
             updatedAt: new Date(),
         });
 
+        const badge = await Badge.findOne({ where: { name: 'DropStreeter débutant' } });
+
+        if (badge) {
+            await UserBadge.create({
+                id_user: user.id_user,
+                id_badge: badge.id_badge
+            });
+        } else {
+            console.error("Badge 'DropStreeter débutant' not found.");
+        }
+
         res.status(201).json({ message: "Utilisateur créé avec succès", user });
     } catch (e) {
         console.error(e);
@@ -171,9 +187,9 @@ router.post("/forgot-password", async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
 
-    const resetToken = uuidv4();  // Génération du token
+    const resetToken = uuidv4();
     user.resetToken = resetToken;
-    user.resetTokenExpiry = Date.now() + 3600000; // Expire dans 1h
+    user.resetTokenExpiry = Date.now() + 3600000;
     await user.save();
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
@@ -231,6 +247,80 @@ router.post('/reset-password/:token', async (req, res) => {
     }
 });
 
+router.get("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await getUserById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+router.put('/upload-photo/:id_user', upload.single('photo'), async (req, res) => {
+    try {
+        const userId = req.params.id_user;
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const photoBuffer = req.file.buffer;
+        await uploadUserPhoto(userId, photoBuffer);
+
+        return res.status(200).json({ message: 'Profile photo updated successfully' });
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+const validatePassword = async (userId, password) => {
+    const user = await User.findOne({ where: { id_user: userId } });
+    if (!user) {
+        throw new Error('User not found');
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        throw new Error('Invalid password');
+    }
+
+    return true;
+};
+
+router.put('/update/:id_user', async (req, res) => {
+    try {
+        const { pseudo, email, bio, password } = req.body;
+        const { id_user } = req.params;
+
+        if (!pseudo || !email || !password) {
+            return res.status(400).json({ message: 'Pseudo, email et mot de passe sont requis' });
+        }
+
+        await validatePassword(id_user, password);
+
+        const updatedUser = await UserRepository.updateUser(id_user, { pseudo, email, bio, password });
+        res.status(200).json({
+            message: 'User updated successfully',
+            user: updatedUser
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ message: e.message || 'Error updating user' });
+    }
+});
 
 module.exports = {
     initializeRoutes: () => router,

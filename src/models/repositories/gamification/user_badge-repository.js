@@ -1,4 +1,5 @@
 const { UserBadge } = require('../../models/gamification/user_badge.model.js');
+const {Badge} = require("../../models/gamification/badge.model");
 
 class UserBadgeRepository {
     async create(userBadgeData) {
@@ -10,7 +11,25 @@ class UserBadgeRepository {
     }
 
     async findAll() {
-        return await UserBadge.findAll();
+        return await UserBadge.findAll(
+            {
+                include: [{
+                    model: Badge,
+                    attributes: ['id_badge', 'name', 'description', 'image']
+                }],
+                nest: true
+            });
+    }
+
+    async findBadgesByUserId(id_user) {
+        return await UserBadge.findAll({
+            where: {
+                id_user: id_user
+            },
+            include: [{
+                model: Badge,
+            }]
+        });
     }
 
     async update(id, updatedData) {
