@@ -89,8 +89,11 @@ router.post('/seeder', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const users = await User.findAll({
+            attributes: ['id_user', 'pseudo', 'email'], // Sélectionne les champs de User
+            include: [{ model: Role, as: 'role', attributes: ['name'] }],
             order: [['pseudo', 'ASC']],
         });
+
         res.status(200).send(users);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of users', error: e.message });

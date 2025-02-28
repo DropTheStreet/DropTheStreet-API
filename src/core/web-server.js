@@ -74,8 +74,9 @@ class WebServer {
         this.app.use(passport.session());
 
         // Relation entre User et Role
-        User.belongsTo(Role, { foreignKey: 'id_role', onDelete: 'CASCADE' });
-        Role.hasMany(User, { foreignKey: 'id_role' });
+        User.belongsTo(Role, { foreignKey: 'id_role', as: 'role', onDelete: 'CASCADE' });
+        Role.hasMany(User, { foreignKey: 'id_role', as: 'users' });
+
 
         // Relations liées aux enchères
         User.hasMany(Auction, { foreignKey: 'id_user' });
