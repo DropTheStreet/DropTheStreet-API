@@ -7,7 +7,7 @@ router.post('/seeder', async (req, res) => {
     try {
         const badgesToCreate = [
             {
-                name: 'Badge de Débutant',
+                name: 'DropStreeter débutant',
                 description: 'Récompense pour les nouveaux utilisateurs.',
                 image: null,
             },

@@ -4,6 +4,8 @@ const { UserBadge } = require('../../models/models/gamification/user_badge.model
 const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Badge} = require("../../models/models/gamification/badge.model");
+const UserBadgeRepository = require("../../models/repositories/gamification/user_badge-repository");
+
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -20,6 +22,14 @@ router.post('/seeder', async (req, res) => {
             {
                 id_user: users[0].id_user,
                 id_badge: badges[0].id_badge
+            },
+            {
+                id_user: users[0].id_user,
+                id_badge: badges[1].id_badge
+            },
+            {
+                id_user: users[0].id_user,
+                id_badge: badges[2].id_badge
             },
             {
                 id_user: users[1].id_user,
@@ -52,12 +62,23 @@ router.post('/seeder', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const userBadges = await UserBadge.findAll();
+        const userBadges = await UserBadgeRepository.findAll();
         res.status(200).send(userBadges);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting user badges', error: e.message });
     }
 });
+
+router.get('/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+        const userBadges = await UserBadgeRepository.findBadgesByUserId(id_user);
+        res.status(200).json(userBadges);
+    } catch (e) {
+        res.status(500).json({ message: 'Error during getting user badges', error: e.message });
+    }
+});
+
 
 module.exports = {
     initializeRoutes: () => router,

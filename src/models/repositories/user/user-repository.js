@@ -4,6 +4,8 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { User } = require('../../models/user/user.model.js');
 const {Role} = require("../../models/user/role.model");
+const {UserBadge} = require("../../models/gamification/user_badge.model");
+const {Badge} = require("../../models/gamification/badge.model");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 const EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
@@ -19,8 +21,21 @@ exports.getUserByEmail = async (email) => {
 };
 
 exports.getUserById = async (id_user) => {
-    return await User.findOne({ where: { id_user } });
+    return await User.findOne({
+        where: { id_user },
+        include: [
+            {
+                model: UserBadge,
+                include: [
+                    {
+                        model: Badge
+                    }
+                ]
+            }
+        ]
+    });
 };
+
 
 exports.getIdUserByEmail = async (email) => {
     let user = await User.findOne({ where: { email } });
@@ -50,6 +65,10 @@ exports.createUser = async (body) => {
     }
 };
 
+exports.uploadUserPhoto = async (id_user, photoBuffer) => {
+    return await User.update({ photo: photoBuffer }, { where: { id_user } });
+};
+
 exports.loginUser = async (email, password) => {
     try {
         const user = await User.findOne({
@@ -76,4 +95,24 @@ exports.loginUser = async (email, password) => {
         console.error('Login error:', error.message);
         throw error;
     }
+};
+
+exports.updateUser = async (id, { pseudo, email, bio, password }) => {
+    const user = await this.getUserById(id);
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    if (pseudo) user.pseudo = pseudo;
+    if (email) user.email = email;
+    if (bio) user.bio = bio;
+
+    if (password) {
+        user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    return user;
 };

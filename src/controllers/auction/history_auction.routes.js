@@ -4,6 +4,7 @@ const { HistoryAuction } = require('../../models/models/auction/history_auction.
 const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Auction} = require("../../models/models/auction/auction.model");
+const HistoryAuctionRepository = require("../../models/repositories/auction/history_auction-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -62,6 +63,26 @@ router.get('/', async (req, res) => {
         res.status(200).send(auctions);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of all history auctions', error: e.message });
+    }
+});
+
+router.get('/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+
+        if (!id_user) {
+            return res.status(400).send({ message: 'User ID is required' });
+        }
+
+        const userAuctions = await HistoryAuctionRepository.findByUserId(id_user);
+
+        if (!userAuctions || userAuctions.length === 0) {
+            return res.status(404).send({ message: 'No history auctions found for this user' });
+        }
+
+        res.status(200).send(userAuctions);
+    } catch (e) {
+        res.status(500).send({ message: 'Error during getting history auctions by user ID', error: e.message });
     }
 });
 
