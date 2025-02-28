@@ -73,8 +73,9 @@ exports.loginUser = async (email, password) => {
     try {
         const user = await User.findOne({
             where: { email },
-            include: [{ model: Role, attributes: ['name'] }]
+            include: [{ model: Role, as: 'role', attributes: ['name'] }],
         });
+
         if (!user) {
             console.error('Invalid email or password');
         }
@@ -113,6 +114,19 @@ exports.updateUser = async (id, { pseudo, email, bio, password }) => {
     }
 
     await user.save();
+    return user;
+};
 
+exports.updateGoogleUser = async (id, { pseudo, bio }) => {
+    const user = await this.getUserById(id);
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    if (pseudo) user.pseudo = pseudo;
+    if (bio) user.bio = bio;
+
+    await user.save();
     return user;
 };

@@ -124,7 +124,7 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 bio: user.bio,
                 dropcoins: user.dropcoins,
-                id_role: user.id_role
+                role: user.role.name
             }
         });
     } catch (error) {
@@ -291,7 +291,7 @@ passport.use(new GoogleStrategy({
                     finalPseudo = `${pseudo}${Math.floor(Math.random() * 1000)}`;
                 }
 
-                const newUser = await User.create({
+                    const newUser = await User.create({
                     pseudo: finalPseudo,
                     email: email,
                     googleId: profile.id,
@@ -302,6 +302,17 @@ passport.use(new GoogleStrategy({
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
+
+                const badge = await Badge.findOne({ where: { name: 'DropStreeter débutant' } });
+
+                if (badge) {
+                    await UserBadge.create({
+                        id_user: newUser.id_user,
+                        id_badge: badge.id_badge
+                    });
+                } else {
+                    console.error("Badge 'DropStreeter débutant' not found.");
+                }
 
                 return done(null, newUser);
             }
@@ -337,7 +348,7 @@ router.get('/auth/google/callback',
         try {
             // Générer un JWT pour l'utilisateur
             const token = jwt.sign(
-                { userId: req.user.id_user, email: req.user.email, role: await RoleRepository.findNameById(req.user.id_role) },
+                { id_user: req.user.id_user, email: req.user.email, role: await RoleRepository.findNameById(req.user.id_role) },
                 process.env.SECRET_KEY,
                 { expiresIn: '24h' }
             );
@@ -415,6 +426,27 @@ router.put('/update/:id_user', async (req, res) => {
         await validatePassword(id_user, password);
 
         const updatedUser = await UserRepository.updateUser(id_user, { pseudo, email, bio, password });
+        res.status(200).json({
+            message: 'User updated successfully',
+            user: updatedUser
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(400).json({ message: e.message || 'Error updating user' });
+    }
+});
+
+
+router.put('/update-google/:id_user', async (req, res) => {
+    try {
+        const { pseudo, bio } = req.body;
+        const { id_user } = req.params;
+
+        if (!pseudo) {
+            return res.status(400).json({ message: 'Pseudo est requis' });
+        }
+
+        const updatedUser = await UserRepository.updateGoogleUser(id_user, { pseudo, bio });
         res.status(200).json({
             message: 'User updated successfully',
             user: updatedUser
