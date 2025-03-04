@@ -86,6 +86,26 @@ router.get('/:id_user', async (req, res) => {
     }
 });
 
+router.get('/details/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+
+        if (!id_user) {
+            return res.status(400).send({ message: 'User ID is required' });
+        }
+
+        const userAuctions = await HistoryAuctionRepository.findHistoryDetailsByUserId(id_user);
+
+        if (!userAuctions || userAuctions.length === 0) {
+            return res.status(404).send({ message: 'No history auctions found for this user' });
+        }
+
+        res.status(200).send(userAuctions);
+    } catch (e) {
+        res.status(500).send({ message: 'Error during getting history auctions by user ID', error: e.message });
+    }
+});
+
 module.exports = {
     initializeRoutes: () => router,
 };

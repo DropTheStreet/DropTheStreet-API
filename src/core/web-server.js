@@ -19,6 +19,7 @@ const dropRoutes = require('../controllers/drop/drop.routes');
 const cartRoutes = require('../controllers/cart/shopping_cart.routes');
 const paymentStatusRoutes = require('../controllers/cart/payment_status.routes');
 const paymentRoutes = require('../controllers/cart/payment.routes');
+const paymentDetailsRoutes = require('../controllers/cart/payment_detail.routes');
 const auctionRoutes = require('../controllers/auction/auction.routes');
 const historyAuctionRoutes = require('../controllers/auction/history_auction.routes');
 const { sequelize } = require('../models/mysql.db')
@@ -208,6 +209,7 @@ class WebServer {
         this.app.use('/cart', cartRoutes.initializeRoutes());
         this.app.use('/payment-status', paymentStatusRoutes.initializeRoutes());
         this.app.use('/payment', paymentRoutes.initializeRoutes());
+        this.app.use('/payment-detail', paymentDetailsRoutes.initializeRoutes());
         this.app.use('/auction', auctionRoutes.initializeRoutes());
         this.app.use('/history-auction', historyAuctionRoutes.initializeRoutes());
     }

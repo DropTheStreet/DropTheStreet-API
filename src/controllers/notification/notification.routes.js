@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const {Image} = require("../../models/models/product/image.model");
 const {NotificationType} = require("../../models/models/notification/notification_type.model");
 const {User} = require("../../models/models/user/user.model");
+const NotificationRepository = require("../../models/repositories/notification/notification-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -70,6 +71,26 @@ router.get('/', async (req, res) => {
         res.status(200).send(notifications);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of notifications', error: e.message });
+    }
+});
+
+router.get('/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+
+        if (!id_user) {
+            return res.status(400).send({ message: 'User ID is required' });
+        }
+
+        const notifications = await NotificationRepository.findByUserId(id_user);
+
+        if (!notifications || notifications.length === 0) {
+            return res.status(404).send({ message: 'No notifications found for this user' });
+        }
+
+        res.status(200).send(notifications);
+    } catch (e) {
+        res.status(500).send({ message: 'Error during getting notifications', error: e.message });
     }
 });
 

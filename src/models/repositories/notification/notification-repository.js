@@ -1,4 +1,5 @@
 const { Notification } = require('../../models/notification/notification.model.js');
+const {NotificationType} = require("../../models/notification/notification_type.model");
 
 class NotificationRepository {
     async create(notificationData) {
@@ -28,6 +29,18 @@ class NotificationRepository {
         }
         await notification.destroy();
         return true;
+    }
+
+    async findByUserId(id_user) {
+        return await Notification.findAll({
+            where: { id_user },
+            include: [
+                {
+                    model: NotificationType,
+                    attributes: ['name']
+                }
+            ]
+        });
     }
 }
 

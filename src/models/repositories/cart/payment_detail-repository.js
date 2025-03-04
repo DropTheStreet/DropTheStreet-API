@@ -1,4 +1,6 @@
 const { PaymentDetail } = require('../../models/cart/payment_detail.model.js');
+const {Payment} = require("../../models/cart/payment.model");
+const {Product} = require("../../models/product/product.model");
 
 class PaymentDetailRepository {
     async create(paymentDetailData) {
@@ -29,6 +31,24 @@ class PaymentDetailRepository {
         await paymentDetail.destroy();
         return true;
     }
+
+    async findHistoryByUserId(userId) {
+        return await PaymentDetail.findAll({
+            include: [
+                {
+                    model: Payment,
+                    where: { id_user: userId },
+                    attributes: ['payment_date'],
+                },
+                {
+                    model: Product,
+                    attributes: ['id_product', 'name'],
+                }
+            ],
+            attributes: ['id_product', 'quantity', 'price_at_purchase']
+        });
+    }
+
 }
 
 module.exports = new PaymentDetailRepository();
