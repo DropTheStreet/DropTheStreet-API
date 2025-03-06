@@ -94,7 +94,7 @@ router.post('/seeder', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: ['id_user', 'pseudo', 'email'], // Sélectionne les champs de User
+            attributes: ['id_user', 'pseudo', 'email', 'bio', 'dropcoins'],
             include: [{ model: Role, as: 'role', attributes: ['name'] }],
             order: [['pseudo', 'ASC']],
         });
@@ -437,6 +437,20 @@ router.put('/update/:id_user', async (req, res) => {
 });
 
 
+router.put('/update-by-admin/:id_user', async (req, res) => {
+    const { id_user } = req.params;
+    const { pseudo, email, bio, role, dropcoins } = req.body;
+
+    try {
+        const updatedUser = await UserRepository.updateUserByAdmin(id_user, { pseudo, email, bio, role, dropcoins });
+
+        res.status(200).send(updatedUser);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).send({ message: 'Error updating user', error: error.message });
+    }
+});
+
 router.put('/update-google/:id_user', async (req, res) => {
     try {
         const { pseudo, bio } = req.body;
@@ -454,6 +468,25 @@ router.put('/update-google/:id_user', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(400).json({ message: e.message || 'Error updating user' });
+    }
+});
+
+router.delete('/delete/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+        const result = await UserRepository.deleteUserById(id_user);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting user", error: error.message });
+    }
+});
+
+router.post("/admin-create", async (req, res) => {
+    try {
+        const user = await UserRepository.createUserByAdmin(req.body);
+        res.status(201).json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Error creating user", error: error.message });
     }
 });
 
