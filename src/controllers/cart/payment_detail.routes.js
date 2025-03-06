@@ -4,7 +4,6 @@ const { Payment } = require('../../models/models/cart/payment.model');
 const { PaymentDetail } = require('../../models/models/cart/payment_detail.model');
 const PaymentDetailRepository = require("../../models/repositories/cart/payment_detail-repository");
 
-
 router.get('/', async (req, res) => {
     try {
         const payments = await Payment.findAll({ include: PaymentDetail });
@@ -21,6 +20,21 @@ router.get('/history/:id_user', async (req, res) => {
 
         if (!paymentDetails || paymentDetails.length === 0) {
             return res.status(404).json({ message: 'No payment details found for this user' });
+        }
+
+        res.status(200).json(paymentDetails);
+    } catch (e) {
+        res.status(500).json({ message: 'Error fetching payment details', error: e.message });
+    }
+});
+
+router.get('/history-seller/:id_seller', async (req, res) => {
+    try {
+        const { id_seller } = req.params;
+        const paymentDetails = await PaymentDetailRepository.findHistoryBySellerId(id_seller);
+
+        if (!paymentDetails || paymentDetails.length === 0) {
+            return res.status(404).json({ message: 'No payment details found for this seller' });
         }
 
         res.status(200).json(paymentDetails);

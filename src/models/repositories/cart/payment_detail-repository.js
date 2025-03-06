@@ -49,6 +49,23 @@ class PaymentDetailRepository {
         });
     }
 
+    async findHistoryBySellerId(sellerId) {
+        return await PaymentDetail.findAll({
+            include: [
+                {
+                    model: Payment,
+                    where: { id_seller: sellerId },
+                    attributes: ['id_payment', 'payment_date'],
+                },
+                {
+                    model: Product,
+                    attributes: ['id_product', 'name'],
+                }
+            ],
+            attributes: ['id_product', 'quantity', 'price_at_purchase']
+        });
+    }
+
 }
 
 module.exports = new PaymentDetailRepository();

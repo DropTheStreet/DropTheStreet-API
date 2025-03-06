@@ -130,3 +130,22 @@ exports.updateGoogleUser = async (id, { pseudo, bio }) => {
     await user.save();
     return user;
 };
+
+exports.getUsersByRoleName = async (roleName) => {
+    try {
+        return await User.findAll({
+            include: [
+                {
+                    model: Role,
+                    as: 'role',
+                    where: { name: roleName },
+                    attributes: []
+                }
+            ]
+        });
+    } catch (error) {
+        console.error('Error fetching users by role name:', error);
+        throw error;
+    }
+};
+

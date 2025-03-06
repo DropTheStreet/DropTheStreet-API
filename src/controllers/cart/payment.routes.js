@@ -6,12 +6,23 @@ const { PaymentStatus } = require('../../models/models/cart/payment_status.model
 const { User } = require('../../models/models/user/user.model');
 const { Product } = require('../../models/models/product/product.model');
 const { v4: uuidv4 } = require('uuid');
+const UserRepository = require("../../models/repositories/user/user-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
-        const users = await User.findAll();
-        if (users.length < 3) {
+        const users = await UserRepository.getUsersByRoleName('User');
+        if (users.length < 1) {
             return res.status(400).send({ message: 'Not enough users for seeding' });
+        }
+
+        const sellers = await UserRepository.getUsersByRoleName('Seller');
+        if (sellers.length < 1) {
+            return res.status(400).send({ message: 'Not enough sellers for seeding' });
+        }
+
+        const admins = await UserRepository.getUsersByRoleName('Admin');
+        if (admins.length < 1) {
+            return res.status(400).send({ message: 'Not enough admins for seeding' });
         }
 
         const products = await Product.findAll();
@@ -31,17 +42,19 @@ router.post('/seeder', async (req, res) => {
                 amount_total: 250.00,
                 delivery_address: '123 Rue Exemple, Paris, France',
                 payment_date: new Date(),
+                id_seller: sellers[0].id_user,
                 products: [
                     { id_product: products[0].id_product, quantity: 2, price_at_purchase: 50.00 },
                     { id_product: products[1].id_product, quantity: 1, price_at_purchase: 150.00 },
                 ],
             },
             {
-                id_user: users[1].id_user,
+                id_user: admins[0].id_user,
                 id_payment_status: paymentStatuses[1].id_payment_status,
                 amount_total: 180.00,
                 delivery_address: '456 Avenue Exemple, Lyon, France',
                 payment_date: new Date(),
+                id_seller: sellers[0].id_user,
                 products: [
                     { id_product: products[1].id_product, quantity: 1, price_at_purchase: 100.00 },
                     { id_product: products[2].id_product, quantity: 2, price_at_purchase: 40.00 },
@@ -57,6 +70,7 @@ router.post('/seeder', async (req, res) => {
                 amount_total: payment.amount_total,
                 delivery_address: payment.delivery_address,
                 payment_date: payment.payment_date,
+                id_seller: payment.id_seller,
             });
 
             for (let product of payment.products) {

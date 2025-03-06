@@ -12,6 +12,10 @@ exports.Payment = sequelize.define('Payment', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    id_seller: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     id_payment_status: {
         type: DataTypes.UUID,
         allowNull: false

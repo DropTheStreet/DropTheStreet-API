@@ -96,6 +96,9 @@ class WebServer {
         User.hasMany(Payment, { foreignKey: 'id_user' });
         Payment.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
+        User.hasMany(Payment, { foreignKey: 'id_seller' });
+        Payment.belongsTo(User, { foreignKey: 'id_seller', onDelete: 'CASCADE' });
+
         PaymentStatus.hasMany(Payment, { foreignKey: 'id_payment_status' });
         Payment.belongsTo(PaymentStatus, { foreignKey: 'id_payment_status', onDelete: 'CASCADE' });
 

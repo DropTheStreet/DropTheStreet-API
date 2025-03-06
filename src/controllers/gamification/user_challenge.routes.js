@@ -4,7 +4,7 @@ const { UserChallenge } = require('../../models/models/gamification/user_challen
 const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Challenge} = require("../../models/models/gamification/challenge.model");
-
+const UserChallengeRepository = require("../../models/repositories/gamification/user_challenge-repository");
 router.post('/seeder', async (req, res) => {
     try {
 
@@ -70,6 +70,22 @@ router.get('/', async (req, res) => {
         res.status(200).send(userChallenges);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of user challenges', error: e.message });
+    }
+});
+
+router.get('/:id_user', async (req, res) => { // Ensure `router.get` is called
+    const { id_user } = req.params;
+
+    try {
+        const userChallenges = await UserChallengeRepository.getUserChallengesByUserId(id_user);
+        if (!userChallenges || userChallenges.length === 0) {
+            return res.status(404).send({ message: 'No challenges found for this user' });
+        }
+
+        res.status(200).send(userChallenges);
+    } catch (error) {
+        console.error('Error fetching user challenges by user ID:', error);
+        res.status(500).send({ message: 'Error fetching user challenges', error: error.message });
     }
 });
 
