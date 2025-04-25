@@ -1,4 +1,5 @@
 const { ProductImage } = require('../../models/product/product_image.model.js');
+const { Image } = require('../../models/product/image.model');
 
 class ProductImageRepository {
     async create(productImageData) {
@@ -28,6 +29,20 @@ class ProductImageRepository {
         }
         await productImage.destroy();
         return true;
+    }
+
+    async findOneByProductId(productId) {
+        return await ProductImage.findOne({
+            where: {
+                id_product: productId
+            },
+            include: [
+                {
+                    model: Image,
+                    required: false
+                }
+            ]
+        });
     }
 }
 

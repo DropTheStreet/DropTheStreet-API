@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Product} = require("../../models/models/product/product.model");
 const {Image} = require("../../models/models/product/image.model");
+const ProductImageRepository = require("../../models/repositories/product/product_image-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -56,6 +57,23 @@ router.get('/', async (req, res) => {
         res.status(200).send(productImages);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of image products', error: e.message });
+    }
+});
+
+router.get('/:productId', async (req, res) => {
+    const { productId } = req.params;
+
+    try {
+        const image = await ProductImageRepository.findOneByProductId(productId);
+
+        if (!image) {
+            return res.status(404).json({ message: 'No image found for this product' });
+        }
+
+        res.status(200).json(image);
+    } catch (error) {
+        console.error('Error fetching product image:', error);
+        res.status(500).json({ message: 'Error while getting product image', error: error.message });
     }
 });
 

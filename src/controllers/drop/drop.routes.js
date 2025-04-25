@@ -3,7 +3,7 @@ const router = express.Router();
 const { Drop } = require('../../models/models/drop/drop.model');
 const { v4: uuidv4 } = require('uuid');
 const {Product} = require("../../models/models/product/product.model");
-
+const DropRepository = require("../../models/repositories/drop/drop-repository");
 router.post('/seeder', async (req, res) => {
     try {
         const products = await Product.findAll();
@@ -26,6 +26,12 @@ router.post('/seeder', async (req, res) => {
             {
                 start_date: new Date('2025-04-10T00:00:00Z'),
                 end_date: new Date('2025-04-17T23:59:59Z'),
+                is_premium: false,
+                id_product: products[2].id_product
+            },
+            {
+                start_date: new Date('2025-05-10T00:00:00Z'),
+                end_date: new Date('2025-06-17T23:59:59Z'),
                 is_premium: false,
                 id_product: products[2].id_product
             }
@@ -60,6 +66,24 @@ router.get('/', async (req, res) => {
         res.status(500).send({ message: 'Error during getting a drop', error: e.message });
     }
 });
+
+router.get('/next', async (req, res) => {
+    try {
+        const drop = await DropRepository.findUpcomingDropWithProduct();
+
+        if (!drop) {
+            return res.status(404).json({ message: 'No upcoming drop found' });
+        }
+        res.status(200).json(drop);
+    } catch (e) {
+        console.error('Error fetching next drop:', e);
+        res.status(500).json({
+            message: 'Error while getting the next drop',
+            error: e.message
+        });
+    }
+});
+
 
 module.exports = {
     initializeRoutes: () => router,

@@ -1,4 +1,6 @@
 const { Drop } = require('../../models/drop/drop.model.js');
+const {Product} = require("../../models/product/product.model");
+const {Op} = require("sequelize");
 
 class DropRepository {
     async create(dropData) {
@@ -28,6 +30,25 @@ class DropRepository {
         }
         await drop.destroy();
         return true;
+    }
+
+    async findUpcomingDropWithProduct() {
+        const now = new Date();
+
+        return await Drop.findOne({
+            where: {
+                start_date: {
+                    [Op.gt]: now
+                }
+            },
+            include: [
+                {
+                    model: Product,
+                    required: true
+                }
+            ],
+            order: [['start_date', 'ASC']]
+        });
     }
 }
 
