@@ -8,9 +8,9 @@ const path = require('path');
 router.post('/seeder', async (req, res) => {
     try {
         const imagePaths = [
-            path.join('C:', 'Users', 'eliza', 'Pictures', 'Screenshots', 'image1_seeder.png'),
-            path.join('C:', 'Users', 'eliza', 'Pictures', 'Screenshots', 'image2_seeder.png'),
-            path.join('C:', 'Users', 'eliza', 'Pictures', 'Screenshots', 'image3_seeder.png')
+            path.join(__dirname, '..', '..', 'images', 'sneakers.png'),
+            path.join(__dirname, '..', '..', 'images', 'tshirt.png'),
+            path.join(__dirname, '..', '..', 'images', 'sweat.png')
         ];
 
         const imagesToCreate = imagePaths.map(imagePath => {
