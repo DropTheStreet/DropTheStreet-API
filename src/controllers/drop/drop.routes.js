@@ -4,6 +4,10 @@ const { Drop } = require('../../models/models/drop/drop.model');
 const { v4: uuidv4 } = require('uuid');
 const {Product} = require("../../models/models/product/product.model");
 const DropRepository = require("../../models/repositories/drop/drop-repository");
+const { Category } = require("../../models/models/product/category.model");
+const { ProductImage } = require("../../models/models/product/product_image.model");
+const { Image } = require("../../models/models/product/image.model");
+
 router.post('/seeder', async (req, res) => {
     try {
         const products = await Product.findAll();
@@ -58,14 +62,106 @@ router.post('/seeder', async (req, res) => {
     }
 });
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
+    const { start_date, end_date, is_premium, id_product } = req.body;
     try {
-        const drops = await Drop.findAll();
-        res.status(200).send(drops);
+        const drop = await Drop.create({
+            start_date,
+            end_date,
+            is_premium,
+            id_product,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+        res.status(201).send(drop);
     } catch (e) {
-        res.status(500).send({ message: 'Error during getting a drop', error: e.message });
+        res.status(500).send({ message: 'Error creating drop', error: e.message });
     }
 });
+
+router.get('/vendor', async (req, res) => {
+    const vendorId = req.user.id; // si auth middleware en place
+    try {
+        const drops = await Drop.findAll({
+            include: {
+                model: Product,
+                where: { id_vendor: vendorId }
+            }
+        });
+        res.status(200).send(drops);
+    } catch (e) {
+        res.status(500).send({ message: 'Error getting vendor drops', error: e.message });
+    }
+});
+
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await Drop.update(req.body, { where: { id_drop: id } });
+        const updatedDrop = await Drop.findByPk(id);
+        res.status(200).send(updatedDrop);
+    } catch (e) {
+        res.status(500).send({ message: 'Error updating drop', error: e.message });
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await Drop.destroy({ where: { id_drop: id } });
+        res.status(204).send();
+    } catch (e) {
+        res.status(500).send({ message: 'Error deleting drop', error: e.message });
+    }
+});
+
+router.get('/', async (req, res) => {
+    try {
+        const drops = await Drop.findAll({
+            include: {
+                model: Product,
+                include: [
+                    {
+                        model: Category,
+                        attributes: ['name']
+                    },
+                    {
+                        model: ProductImage,
+                        include: {
+                            model: Image,
+                            attributes: ['image'] // BLOB
+                        }
+                    }
+                ]
+            }
+        });
+
+        const formattedDrops = drops.map(drop => {
+            const product = drop.Product;
+            const categoryName = product?.Category?.name || "Inconnu";
+
+            const rawImage = product?.ProductImages?.[0]?.Image?.image;
+            const imageBase64 = rawImage ? `data:image/jpeg;base64,${rawImage.toString('base64')}` : null;
+
+            return {
+                id: drop.id_drop,
+                name: product.name,
+                brand: "N/A", // pas dans tes données actuelles
+                category: categoryName,
+                image: imageBase64 || "/placeholder.png",
+                dropDate: drop.start_date,
+                isVip: drop.is_premium
+            }
+        });
+
+        res.status(200).send(formattedDrops);
+    } catch (e) {
+        console.error(e);
+        res.status(500).send({ message: 'Error during getting of all drops', error: e.message });
+    }
+});
+
+
 
 router.get('/next', async (req, res) => {
     try {
