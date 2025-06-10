@@ -4,6 +4,7 @@ const { Auction } = require('../../models/models/auction/auction.model');
 const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Product} = require("../../models/models/product/product.model");
+const AuctionRepository  = require("../../models/repositories/auction/auction-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -73,6 +74,54 @@ router.get('/', async (req, res) => {
         res.status(200).send(auctions);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of all auctions', error: e.message });
+    }
+});
+
+router.post('/create', async (req, res) => {
+    try {
+        const auction = await AuctionRepository.create(req.body);
+        res.status(201).json(auction);
+    } catch (e) {
+        res.status(500).json({ message: 'Error creating auction', error: e.message });
+    }
+});
+
+router.get('/active', async (req, res) => {
+    try {
+        const activeAuctions = await AuctionRepository.findActiveAuctions();
+        res.status(200).json(activeAuctions);
+    } catch (e) {
+        res.status(500).json({ message: 'Error fetching active auctions', error: e.message });
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const auction = await AuctionRepository.findById(req.params.id);
+        if (!auction) {
+            return res.status(404).json({ message: 'Auction not found' });
+        }
+        res.status(200).json(auction);
+    } catch (e) {
+        res.status(500).json({ message: 'Error fetching auction', error: e.message });
+    }
+});
+
+router.put('/update/:id', async (req, res) => {
+    try {
+        const updated = await AuctionRepository.update(req.params.id, req.body);
+        res.status(200).json(updated);
+    } catch (e) {
+        res.status(500).json({ message: 'Error updating auction', error: e.message });
+    }
+});
+
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const deleted = await AuctionRepository.delete(req.params.id);
+        res.status(200).json({ message: 'Auction deleted', success: deleted });
+    } catch (e) {
+        res.status(500).json({ message: 'Error deleting auction', error: e.message });
     }
 });
 
