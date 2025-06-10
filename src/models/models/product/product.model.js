@@ -34,6 +34,10 @@ exports.Product = sequelize.define('Product', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    id_brand: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     //added_date -> created_at
 }, {
     tableName: 'Product',
