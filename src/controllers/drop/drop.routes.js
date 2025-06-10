@@ -7,6 +7,7 @@ const DropRepository = require("../../models/repositories/drop/drop-repository")
 const { Category } = require("../../models/models/product/category.model");
 const { ProductImage } = require("../../models/models/product/product_image.model");
 const { Image } = require("../../models/models/product/image.model");
+const {Brand} = require("../../models/models/product/brand.model");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -126,10 +127,14 @@ router.get('/', async (req, res) => {
                         attributes: ['name']
                     },
                     {
+                        model: Brand,
+                        attributes: ['name']
+                    },
+                    {
                         model: ProductImage,
                         include: {
                             model: Image,
-                            attributes: ['image'] // BLOB
+                            attributes: ['image']
                         }
                     }
                 ]
@@ -138,7 +143,8 @@ router.get('/', async (req, res) => {
 
         const formattedDrops = drops.map(drop => {
             const product = drop.Product;
-            const categoryName = product?.Category?.name || "Inconnu";
+            const categoryName = product?.Category?.name || "N/A";
+            const brandName = product?.Brand?.name || "N/A";
 
             const rawImage = product?.ProductImages?.[0]?.Image?.image;
             const imageBase64 = rawImage ? `data:image/jpeg;base64,${rawImage.toString('base64')}` : null;
@@ -146,7 +152,7 @@ router.get('/', async (req, res) => {
             return {
                 id: drop.id_drop,
                 name: product.name,
-                brand: "N/A", // pas dans tes données actuelles
+                brand: brandName,
                 category: categoryName,
                 image: imageBase64 || "/placeholder.png",
                 dropDate: drop.start_date,
@@ -180,6 +186,14 @@ router.get('/next', async (req, res) => {
     }
 });
 
+router.get('/category', async (req, res) => {
+    try {
+        const categories = await Category.findAll();
+        res.status(200).send(categories);
+    } catch (e) {
+        res.status(500).send({ message: 'Error during getting categories', error: e.message });
+    }
+});
 
 module.exports = {
     initializeRoutes: () => router,

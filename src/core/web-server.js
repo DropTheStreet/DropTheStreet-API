@@ -6,6 +6,7 @@ const roleRoutes = require('../controllers/user/role.routes');
 const statisticRoutes = require('../controllers/statistic/statistic.routes');
 const productRoutes = require('../controllers/product/product.routes');
 const productCategoryRoutes = require('../controllers/product/category.routes');
+const productBrandRoutes = require('../controllers/product/brand.routes');
 const productFavoriteRoutes = require('../controllers/product/product_favorite.routes');
 const imageRoutes = require('../controllers/product/image.routes');
 const productImageRoutes = require('../controllers/product/product_image.routes');
@@ -50,6 +51,7 @@ const passport = require('passport');
 const session = require('express-session');
 const {PaymentDetail} = require("../models/models/cart/payment_detail.model");
 const {CartItem} = require("../models/models/cart/cart_item.model");
+const {Brand} = require("../models/models/product/brand.model");
 
 class WebServer {
     app = undefined;
@@ -161,6 +163,10 @@ class WebServer {
         Category.hasMany(Product, { foreignKey: 'id_category' });
         Product.belongsTo(Category, { foreignKey: 'id_category', onDelete: 'CASCADE' });
 
+        // Relations liées aux marques et produits
+        Brand.hasMany(Product, { foreignKey: 'id_brand' });
+        Product.belongsTo(Brand, { foreignKey: 'id_brand', onDelete: 'CASCADE' });
+
         Product.hasOne(Statistic, { foreignKey: 'id_product' });
         Statistic.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
@@ -199,6 +205,7 @@ class WebServer {
         this.app.use('/statistic', statisticRoutes.initializeRoutes());
         this.app.use('/product', productRoutes.initializeRoutes());
         this.app.use('/category', productCategoryRoutes.initializeRoutes());
+        this.app.use('/brand', productBrandRoutes.initializeRoutes());
         this.app.use('/image', imageRoutes.initializeRoutes());
         this.app.use('/favorite', productFavoriteRoutes.initializeRoutes());
         this.app.use('/product-image', productImageRoutes.initializeRoutes());

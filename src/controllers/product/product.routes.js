@@ -3,12 +3,18 @@ const router = express.Router();
 const { Product } = require('../../models/models/product/product.model');
 const { v4: uuidv4 } = require('uuid');
 const {Category} = require("../../models/models/product/category.model");
+const {Brand} = require("../../models/models/product/brand.model");
 
 router.post('/seeder', async (req, res) => {
     try {
         const categories = await Category.findAll();
         if (categories.length < 3) {
             return res.status(400).send({ message: 'Not enough categories for seeding' });
+        }
+
+        const brands = await Brand.findAll();
+        if (brands.length < 3) {
+            return res.status(400).send({ message: 'Not enough brands for seeding' });
         }
 
         const productsToCreate = [
@@ -19,6 +25,7 @@ router.post('/seeder', async (req, res) => {
                 image: null,
                 quantity: 100,
                 id_category: categories[0].id_category,
+                id_brand: brands[0].id_brand,
             },
             {
                 name: 'Produit 2',
@@ -27,6 +34,7 @@ router.post('/seeder', async (req, res) => {
                 image: null,
                 quantity: 50,
                 id_category: categories[1].id_category,
+                id_brand: brands[1].id_brand,
             },
             {
                 name: 'Produit 3',
@@ -35,6 +43,7 @@ router.post('/seeder', async (req, res) => {
                 image: null,
                 quantity: 200,
                 id_category: categories[2].id_category,
+                id_brand: brands[2].id_brand,
             }
         ];
 
@@ -47,6 +56,7 @@ router.post('/seeder', async (req, res) => {
                 image: product.image,
                 quantity: product.quantity,
                 id_category: product.id_category,
+                id_brand: product.id_brand,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });

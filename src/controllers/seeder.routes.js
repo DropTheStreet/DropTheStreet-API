@@ -64,6 +64,19 @@ router.post('/seeder', async (req, res) => {
 
         console.log('Category seeder was created successfully');
 
+        //Brand
+
+        const brandSeederResponse = await fetch('http://localhost:3000/brand/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!brandSeederResponse.ok) {
+            console.error('Error during execution of brand seeder');
+        }
+
+        console.log('Brand seeder was created successfully');
+
         //Image
 
         const imageSeederResponse = await fetch('http://localhost:3000/image/seeder', {
