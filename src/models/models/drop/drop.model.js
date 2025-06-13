@@ -25,6 +25,14 @@ exports.Drop = sequelize.define('Drop', {
     id_product: {
         type: DataTypes.UUID,
         allowNull: false
+    },
+    id_vendor: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+            model: 'User',
+            key: 'id_user'
+        }
     }
 }, {
     tableName: 'Drop',

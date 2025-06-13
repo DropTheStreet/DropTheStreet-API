@@ -6,7 +6,16 @@ require('dotenv').config()
 
 const initJsonHandlerMiddlware = (app) => app.use(express.json());
 const staticMiddlware = (app) => app.use(express.static('public'));
-const corsMiddlware = (app) => app.use(cors());
+const corsMiddlware = (app) => {
+    const corsOptions = {
+        origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    };
+
+    app.use(cors(corsOptions));
+    app.options('*', cors(corsOptions));
+};
 
 const initLoggerMiddlware = (app) => {
     app.use((req, res, next) => {
@@ -32,6 +41,15 @@ const tokenMiddlware = (app) => {
         jwt({
             secret: process.env.SECRET_KEY,
             algorithms: ["HS256"],
+            // Extraire le token du header Authorization
+            getToken: function fromHeaderOrQuerystring(req) {
+                if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+                    return req.headers.authorization.split(' ')[1];
+                }
+                return null;
+            },
+            // Personnaliser l'objet utilisateur
+            userProperty: 'user' // Assurez-vous que cette propriété est définie sur 'user'
         }).unless(
             { path: [
                     { url : "/", methods: ["GET"] },
@@ -88,6 +106,15 @@ const tokenMiddlware = (app) => {
                 ]
             })
     );
+
+    // Middleware pour gérer les erreurs d'authentification
+    app.use((err, req, res, next) => {
+        if (err.name === 'UnauthorizedError') {
+            console.error('Auth error:', err);
+            return res.status(401).json({ message: 'Invalid token or no token provided' });
+        }
+        next(err);
+    });
 }
 
 exports.initializeConfigMiddlewares = (app) => {
