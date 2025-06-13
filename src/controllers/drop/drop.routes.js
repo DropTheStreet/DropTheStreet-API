@@ -88,6 +88,25 @@ router.post('/', async (req, res) => {
     }
 });
 
+
+router.get('/:id/details', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const drop = await DropRepository.findDropDetails(id);
+
+        if (!drop) {
+            return res.status(404).json({ message: 'Drop not found' });
+        }
+
+        res.status(200).json(drop);
+    } catch (error) {
+        console.error('Error fetching drop:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
+
+
 router.get('/vendor/:id_vendor', async (req, res) => {
     try {
         // Récupérer l'ID du vendeur depuis les paramètres de l'URL
@@ -331,6 +350,25 @@ router.get('/next', async (req, res) => {
         });
     }
 });
+
+router.get('/today', async (req, res) => {
+    try {
+        const drops = await DropRepository.findTodayDropsWithProductAndProject();
+
+        if (!drops || drops.length === 0) {
+            return res.status(404).json({ message: 'No drops found for today' });
+        }
+
+        res.status(200).json(drops);
+    } catch (e) {
+        console.error('Error fetching today\'s drops:', e);
+        res.status(500).json({
+            message: 'Error while getting today\'s drops',
+            error: e.message
+        });
+    }
+});
+
 
 router.get('/category', async (req, res) => {
     try {

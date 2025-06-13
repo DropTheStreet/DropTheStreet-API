@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const {Category} = require("../../models/models/product/category.model");
 const {Brand} = require("../../models/models/product/brand.model");
 const {ProductImage} = require("../../models/models/product/product_image.model");
-const {Drop} = require("../../models/models/drop/drop.model");
+const ProductRepository = require("../../models/repositories/product/product-repository");
 const {Image} = require("../../models/models/product/image.model");
 
 router.post('/seeder', async (req, res) => {
@@ -72,6 +72,27 @@ router.post('/seeder', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).send({ message: 'Erreur lors de l’ajout des produits', error: e.message });
+    }
+});
+
+router.get('/popular', async (req, res) => {
+    try {
+        const popularProducts = await ProductRepository.findTop3ByQuantity();
+
+        // Sécurité : compléter manuellement avec d'autres produits si moins de 3 trouvés
+        if (popularProducts.length < 3) {
+            const allProducts = await ProductRepository.findAll();
+            const addedProducts = allProducts
+                .filter(p => !popularProducts.find(pp => pp.id_product === p.id_product))
+                .slice(0, 3 - popularProducts.length);
+
+            return res.status(200).send([...popularProducts, ...addedProducts]);
+        }
+
+        res.status(200).send(popularProducts);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des produits populaires :', error);
+        res.status(500).send({ message: 'Erreur serveur', error: error.message });
     }
 });
 

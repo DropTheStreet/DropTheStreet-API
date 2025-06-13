@@ -50,6 +50,43 @@ class DropRepository {
             order: [['start_date', 'ASC']]
         });
     }
+
+    async findTodayDropsWithProductAndProject() {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        return await Drop.findAll({
+            where: {
+                start_date: {
+                    [Op.between]: [startOfDay, endOfDay]
+                }
+            },
+            include: [
+                {
+                    model: Product,
+                    required: true
+                }
+            ],
+            order: [['start_date', 'ASC']],
+            limit: 3
+        });
+    }
+
+    async findDropDetails(id) {
+        return await Drop.findByPk(id, {
+            include: [
+                {
+                    model: Product,
+                    required: true
+                },
+            ]
+        });
+    }
+
+
 }
 
 module.exports = new DropRepository();
