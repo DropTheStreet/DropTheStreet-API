@@ -107,6 +107,18 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/:id/details', async (req, res) => {
+    try {
+        const auction = await AuctionRepository.findByIdWithDetails(req.params.id);
+        if (!auction) {
+            return res.status(404).json({ message: 'Auction not found' });
+        }
+        res.status(200).json(auction);
+    } catch (e) {
+        res.status(500).json({ message: 'Error fetching auction', error: e.message });
+    }
+});
+
 router.put('/update/:id', async (req, res) => {
     try {
         const updated = await AuctionRepository.update(req.params.id, req.body);

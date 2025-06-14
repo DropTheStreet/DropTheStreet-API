@@ -58,6 +58,25 @@ class AuctionRepository {
 
         return auctions;
     }
+
+    async findByIdWithDetails(id) {
+        const auction = await Auction.findByPk(id, {
+            include: [
+                {
+                    model: Product,
+                    include: [
+                        {
+                            model: ProductImage,
+                            include: [
+                                { model: Image }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+        return auction;
+    }
 }
 
 module.exports = new AuctionRepository();
