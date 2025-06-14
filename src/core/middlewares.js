@@ -4,7 +4,10 @@ const cors = require('cors')
 const { expressjwt: jwt } = require("express-jwt");
 require('dotenv').config()
 
-const initJsonHandlerMiddlware = (app) => app.use(express.json());
+const initJsonHandlerMiddlware = (app) => {
+    app.use(express.json({ limit: '10mb' })); // Augmenté à 10MB
+    app.use(express.urlencoded({ limit: '10mb', extended: true })); // Ajout pour les données URL-encoded
+};
 const staticMiddlware = (app) => app.use(express.static('public'));
 const corsMiddlware = (app) => {
     const corsOptions = {

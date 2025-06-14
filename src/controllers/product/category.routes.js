@@ -42,6 +42,35 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Créer une nouvelle marque
+router.post('/', async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        if (!name) {
+            return res.status(400).send({ message: 'Category name is required' });
+        }
+
+        // Vérifier si la marque existe déjà
+        const existingCategory = await Category.findOne({ where: { name } });
+        if (existingCategory) {
+            return res.status(200).send(existingCategory); // Retourner la marque existante
+        }
+
+        // Créer une nouvelle marque
+        const newCategory = await Category.create({
+            name,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        res.status(201).send(newCategory);
+    } catch (e) {
+        console.error('Error creating Category:', e);
+        res.status(500).send({ message: 'Error creating Category', error: e.message });
+    }
+});
+
 module.exports = {
     initializeRoutes: () => router,
 };

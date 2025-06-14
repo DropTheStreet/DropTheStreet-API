@@ -72,9 +72,10 @@ router.post('/seeder', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { start_date, end_date, is_premium, id_product } = req.body;
+    const { start_date, end_date, is_premium, id_product, id_vendor } = req.body;
     try {
         const drop = await Drop.create({
+            id_vendor,
             start_date,
             end_date,
             is_premium,
@@ -187,6 +188,8 @@ router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { start_date, end_date, is_premium, id_product } = req.body;
+
+        console.log(id, start_date, end_date, is_premium, id_product);
 
         // Vérifier que le drop existe
         const drop = await Drop.findByPk(id);
