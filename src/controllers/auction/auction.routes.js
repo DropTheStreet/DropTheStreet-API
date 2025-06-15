@@ -23,24 +23,24 @@ router.post('/seeder', async (req, res) => {
             {
                 initial_price: 1000,
                 actual_price: 1500,
-                start_date: new Date('2025-02-10T10:00:00Z'),
-                end_date: new Date('2025-02-12T10:00:00Z'),
+                start_date: new Date('2025-06-16T10:00:00Z'),
+                end_date: new Date('2025-06-18T10:00:00Z'),
                 id_product: products[0].id_product,
                 id_user: users[0].id_user
             },
             {
                 initial_price: 500,
                 actual_price: 750,
-                start_date: new Date('2025-02-11T12:00:00Z'),
-                end_date: new Date('2025-02-14T12:00:00Z'),
+                start_date: new Date('2025-07-11T12:00:00Z'),
+                end_date: new Date('2025-07-14T12:00:00Z'),
                 id_product: products[1].id_product,
                 id_user: users[1].id_user
             },
             {
                 initial_price: 2000,
                 actual_price: 2500,
-                start_date: new Date('2025-02-13T15:00:00Z'),
-                end_date: new Date('2025-02-20T15:00:00Z'),
+                start_date: new Date('2025-06-16T15:00:00Z'),
+                end_date: new Date('2025-06-20T15:00:00Z'),
                 id_product: products[2].id_product,
                 id_user: users[2].id_user
             },
