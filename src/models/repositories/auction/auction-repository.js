@@ -12,7 +12,21 @@ class AuctionRepository {
     }
 
     async findById(id) {
-        return await Auction.findByPk(id);
+        return await Auction.findByPk(id, {
+            include: [
+                {
+                    model: Product,
+                    include: [
+                        {
+                            model: ProductImage,
+                            include: [
+                                {model: Image}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
     }
 
     async findAll() {

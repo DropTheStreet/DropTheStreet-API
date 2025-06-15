@@ -348,7 +348,7 @@ router.get('/auth/google/callback',
         try {
             // Générer un JWT pour l'utilisateur
             const token = jwt.sign(
-                { id_user: req.user.id_user, email: req.user.email, role: await RoleRepository.findNameById(req.user.id_role) },
+                { id_user: req.user.id_user, email: req.user.email, pseudo: req.user.pseudo, role: await RoleRepository.findNameById(req.user.id_role) },
                 process.env.SECRET_KEY,
                 { expiresIn: '24h' }
             );

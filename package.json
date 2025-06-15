@@ -5,7 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start:dev": "nodemon index.js"
+    "test:websocket": "jest src/tests/websocket.test.js",
+    "test:chat": "jest src/tests/chat.test.js",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:verbose": "jest --verbose",
+    "test:all": "node run-all-tests.js",
+    "start": "node index.js",
+    "start:dev": "nodemon index.js",
+    "start:websocket": "node start-with-websockets.js",
+    "start:websocket:dev": "nodemon start-with-websockets.js"
   },
   "author": "",
   "license": "ISC",
