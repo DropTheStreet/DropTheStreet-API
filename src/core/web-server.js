@@ -189,14 +189,15 @@ class WebServer {
         User.hasMany(GeneralChat, { foreignKey: 'id_user', as: 'user' });
         GeneralChat.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
 
-        sequelize.sync({ force: false });
-
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
         initializeErrorMiddlwares(this.app);
     }
 
-    start() {
+    async start() {
+        // Créer les tables dans le bon ordre avant de démarrer le serveur
+        await this.createTablesInOrder();
+
         this.server = http.createServer(this.app);
         this.io = socketIo(this.server, {
             cors: {
@@ -302,6 +303,58 @@ class WebServer {
         }
 
         return stats;
+    }
+
+    /**
+     * Créer les tables dans le bon ordre pour éviter les erreurs de clés étrangères
+     */
+    async createTablesInOrder() {
+        console.log('🗄️  Création des tables dans l\'ordre correct...');
+
+        try {
+            // Niveau 1 - Tables sans dépendances
+            console.log('📋 Niveau 1 - Tables de base...');
+            await Role.sync({ force: false });
+            await Category.sync({ force: false });
+            await Brand.sync({ force: false });
+            await Image.sync({ force: false });
+            await PaymentStatus.sync({ force: false });
+            await NotificationType.sync({ force: false });
+            await Challenge.sync({ force: false });
+            await Badge.sync({ force: false });
+
+            // Niveau 2 - Tables avec 1 dépendance
+            console.log('📋 Niveau 2 - Tables principales...');
+            await User.sync({ force: false });
+            await Product.sync({ force: false });
+
+            // Niveau 3 - Tables avec 2+ dépendances
+            console.log('📋 Niveau 3 - Tables de relations...');
+            await ProductImage.sync({ force: false });
+            await ProductFavorite.sync({ force: false });
+            await Statistic.sync({ force: false });
+            await Drop.sync({ force: false });
+            await Auction.sync({ force: false });
+            await GeneralChat.sync({ force: false });
+            await ShoppingCart.sync({ force: false });
+            await Payment.sync({ force: false });
+            await Support.sync({ force: false });
+            await Notification.sync({ force: false });
+            await UserBadge.sync({ force: false });
+            await UserChallenge.sync({ force: false });
+
+            // Niveau 4 - Tables finales
+            console.log('📋 Niveau 4 - Tables finales...');
+            await HistoryAuction.sync({ force: false });
+            await CartItem.sync({ force: false });
+            await PaymentDetail.sync({ force: false });
+
+            console.log('✅ Toutes les tables créées avec succès dans le bon ordre !');
+
+        } catch (error) {
+            console.error('❌ Erreur lors de la création des tables:', error.message);
+            throw error;
+        }
     }
 }
 
