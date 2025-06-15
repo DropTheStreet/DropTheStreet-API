@@ -10,14 +10,49 @@ const initJsonHandlerMiddlware = (app) => {
 };
 const staticMiddlware = (app) => app.use(express.static('public'));
 const corsMiddlware = (app) => {
+    // Configuration CORS basée sur l'environnement
+    let allowedOrigins = [
+        'http://localhost:3001',
+        'http://127.0.0.1:3001',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000'
+    ];
+
+    // Ajouter les domaines de production/développement
+    if (process.env.NODE_ENV === 'production') {
+        allowedOrigins.push(
+            'https://dropthestreet.com',
+            'https://www.dropthestreet.com'
+        );
+    } else {
+        // En développement, ajouter les domaines de dev
+        allowedOrigins.push(
+            'http://dev.dropthestreet.com',
+            'https://dev.dropthestreet.com'
+        );
+    }
+
     const corsOptions = {
-        origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+        origin: function (origin, callback) {
+            // Permettre les requêtes sans origin (ex: applications mobiles, Postman)
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                console.log(`❌ CORS bloqué pour l'origine: ${origin}`);
+                callback(new Error('Non autorisé par la politique CORS'));
+            }
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization']
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+        credentials: true
     };
 
     app.use(cors(corsOptions));
     app.options('*', cors(corsOptions));
+
+    console.log('🌐 CORS configuré pour:', allowedOrigins);
 };
 
 const initLoggerMiddlware = (app) => {
