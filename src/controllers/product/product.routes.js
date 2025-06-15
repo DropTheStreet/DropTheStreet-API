@@ -97,17 +97,6 @@ router.post('/seeder', async (req, res) => {
 router.get('/popular', async (req, res) => {
     try {
         const popularProducts = await ProductRepository.findTop3ByQuantity();
-
-        // Sécurité : compléter manuellement avec d'autres produits si moins de 3 trouvés
-        if (popularProducts.length < 3) {
-            const allProducts = await ProductRepository.findAll();
-            const addedProducts = allProducts
-                .filter(p => !popularProducts.find(pp => pp.id_product === p.id_product))
-                .slice(0, 3 - popularProducts.length);
-
-            return res.status(200).send([...popularProducts, ...addedProducts]);
-        }
-
         res.status(200).send(popularProducts);
     } catch (error) {
         console.error('Erreur lors de la récupération des produits populaires :', error);

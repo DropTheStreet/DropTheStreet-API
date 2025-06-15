@@ -118,15 +118,6 @@ router.get('/vendor/:id_vendor', async (req, res) => {
             return res.status(400).send({ message: 'Vendor ID is required' });
         }
 
-        // Importer les modèles nécessaires
-        const { Product } = require('../../models/models/product/product.model');
-        const { Category } = require('../../models/models/product/category.model');
-        const { Brand } = require('../../models/models/product/brand.model');
-        const { ProductImage } = require('../../models/models/product/product_image.model');
-        const { Image } = require('../../models/models/product/image.model');
-        const { Drop } = require('../../models/models/drop/drop.model');
-        const { Op } = require('sequelize');
-
         // Récupérer les drops avec les produits associés
         const drops = await Drop.findAll({
             where: { id_vendor: vendorId }, // Le filtre principal
@@ -149,7 +140,6 @@ router.get('/vendor/:id_vendor', async (req, res) => {
         });
 
 
-        console.log(drops)
         // Format the response to match frontend expectations
         const formattedDrops = drops.map(drop => {
             const product = drop.Product;

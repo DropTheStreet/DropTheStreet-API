@@ -128,6 +128,17 @@ router.put('/update/:id', async (req, res) => {
     }
 });
 
+router.get('/seller/:id_user', async (req, res) => {
+    try {
+        const { id_user } = req.params;
+        const auctions = await AuctionRepository.findBySellerId(id_user);
+        res.status(200).json(auctions);
+    } catch (e) {
+        res.status(500).json({ message: 'Error fetching auctions by user', error: e.message });
+    }
+});
+
+
 router.delete('/delete/:id', async (req, res) => {
     try {
         const deleted = await AuctionRepository.delete(req.params.id);

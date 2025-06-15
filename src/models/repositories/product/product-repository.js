@@ -1,4 +1,6 @@
 const { Product } = require('../../models/product/product.model.js');
+const {Category} = require("../../models/product/category.model");
+const {Brand} = require("../../models/product/brand.model");
 
 class ProductRepository {
     async create(productData) {
@@ -25,8 +27,19 @@ class ProductRepository {
         return await Product.findAll({
             order: [['quantity', 'DESC']],
             limit: 3,
+            include: [
+                {
+                    model: Category,
+                    attributes: ['name'],
+                },
+                {
+                    model: Brand,
+                    attributes: ['name'],
+                }
+            ]
         });
     }
+
 
     async delete(id) {
         const product = await Product.findByPk(id);

@@ -1,6 +1,8 @@
 const { Drop } = require('../../models/drop/drop.model.js');
 const {Product} = require("../../models/product/product.model");
 const {Op} = require("sequelize");
+const {Category} = require("../../models/product/category.model");
+const {Brand} = require("../../models/product/brand.model");
 
 class DropRepository {
     async create(dropData) {
@@ -67,7 +69,17 @@ class DropRepository {
             include: [
                 {
                     model: Product,
-                    required: true
+                    required: true,
+                    include: [
+                        {
+                            model: Category,
+                            attributes: ['name']
+                        },
+                        {
+                            model: Brand,
+                            attributes: ['name']
+                        }
+                    ]
                 }
             ],
             order: [['start_date', 'ASC']],
@@ -75,12 +87,23 @@ class DropRepository {
         });
     }
 
+
     async findDropDetails(id) {
         return await Drop.findByPk(id, {
             include: [
                 {
                     model: Product,
-                    required: true
+                    required: true,
+                    include: [
+                        {
+                            model: Category,
+                            attributes: ['name']
+                        },
+                        {
+                            model: Brand,
+                            attributes: ['name']
+                        }
+                    ]
                 },
             ]
         });

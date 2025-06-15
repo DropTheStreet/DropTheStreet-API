@@ -3,6 +3,8 @@ const {DataTypes, Op} = require("sequelize");
 const {Product} = require("../../models/product/product.model");
 const {ProductImage} = require("../../models/product/product_image.model");
 const {Image} = require("../../models/product/image.model");
+const {Category} = require("../../models/product/category.model");
+const {Brand} = require("../../models/product/brand.model");
 
 class AuctionRepository {
     async create(auctionData) {
@@ -44,11 +46,20 @@ class AuctionRepository {
             include: [
                 {
                     model: Product,
+                    attributes: ['name'],
                     include: [
+                        {
+                            model: Category,
+                            attributes: ['name']
+                        },
+                        {
+                            model: Brand,
+                            attributes: ['name']
+                        },
                         {
                             model: ProductImage,
                             include: [
-                                {model: Image}
+                                { model: Image }
                             ]
                         }
                     ]
@@ -66,6 +77,14 @@ class AuctionRepository {
                     model: Product,
                     include: [
                         {
+                            model: Category,
+                            attributes: ['name']
+                        },
+                        {
+                            model: Brand,
+                            attributes: ['name']
+                        },
+                        {
                             model: ProductImage,
                             include: [
                                 { model: Image }
@@ -77,6 +96,39 @@ class AuctionRepository {
         });
         return auction;
     }
+
+    async findBySellerId(id_user) {
+        if (!id_user) {
+            throw new Error('id_user is required');
+        }
+
+        return await Auction.findAll({
+            where: { id_user },
+            include: [
+                {
+                    model: Product,
+                    attributes: ['name'],
+                    include: [
+                        {
+                            model: Category,
+                            attributes: ['name']
+                        },
+                        {
+                            model: Brand,
+                            attributes: ['name']
+                        },
+                        {
+                            model: ProductImage,
+                            include: [
+                                { model: Image }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+    }
+
 }
 
 module.exports = new AuctionRepository();
