@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Client WebSocket - DropTheStreet</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.authenticated { background-color: #cce7ff; color: #004085; }
+        
+        input, button, select {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .log-info { background-color: #e7f3ff; }
+        .log-success { background-color: #d4edda; }
+        .log-error { background-color: #f8d7da; }
+        .log-warning { background-color: #fff3cd; }
+        
+        .auction-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+        }
+        .auction-active {
+            border-color: #28a745;
+            background-color: #f0fff4;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 Test Client WebSocket - DropTheStreet</h1>
+    
+    <div class="container">
+        <h2>Connexion</h2>
+        <div id="connectionStatus" class="status disconnected">
+            ❌ Déconnecté
+        </div>
+        
+        <div>
+            <input type="text" id="serverUrl" placeholder="URL du serveur" value="http://localhost:3000">
+            <button onclick="connect()">Se connecter</button>
+            <button onclick="disconnect()">Se déconnecter</button>
+        </div>
+        
+        <div>
+            <input type="text" id="jwtToken" placeholder="Token JWT" style="width: 300px;">
+            <button onclick="authenticate()" id="authBtn" disabled>S'authentifier</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="container">
+            <h2>Chat Général</h2>
+
+            <div>
+                <button onclick="joinGeneralChat()" id="joinChatBtn" disabled>Rejoindre le Chat</button>
+                <button onclick="leaveGeneralChat()" id="leaveChatBtn" disabled>Quitter le Chat</button>
+                <button onclick="getChatHistory()" id="getChatHistoryBtn" disabled>Historique</button>
+            </div>
+
+            <div>
+                <h3>Envoyer un message</h3>
+                <input type="text" id="chatMessage" placeholder="Tapez votre message..." style="width: 300px;" maxlength="1000">
+                <button onclick="sendMessage()" id="sendMessageBtn" disabled>Envoyer</button>
+            </div>
+
+            <div>
+                <h3>Messages du Chat</h3>
+                <div id="chatMessages" style="height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">
+                    <p>Rejoignez le chat pour voir les messages</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>Actions d'Enchères</h2>
+            
+            <div>
+                <h3>Rejoindre une enchère</h3>
+                <input type="text" id="auctionId" placeholder="ID de l'enchère">
+                <button onclick="joinAuction()" id="joinBtn" disabled>Rejoindre</button>
+                <button onclick="leaveAuction()" id="leaveBtn" disabled>Quitter</button>
+            </div>
+            
+            <div>
+                <h3>Placer une enchère</h3>
+                <input type="number" id="bidAmount" placeholder="Montant" step="0.01">
+                <button onclick="placeBid()" id="bidBtn" disabled>Enchérir</button>
+            </div>
+            
+            <div>
+                <button onclick="getActiveAuctions()" id="getAuctionsBtn" disabled>Obtenir les enchères actives</button>
+                <button onclick="getStats()">Statistiques</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>Enchères Actives</h2>
+            <div id="auctionsList">
+                <p>Aucune enchère chargée</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Journal des Événements</h2>
+        <button onclick="clearLog()">Effacer le journal</button>
+        <div id="eventLog" class="log"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let isAuthenticated = false;
+        let currentAuctionId = null;
+        let inGeneralChat = false;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${status}`;
+            statusDiv.innerHTML = message;
+        }
+
+        function updateButtons() {
+            const connected = socket && socket.connected;
+            document.getElementById('authBtn').disabled = !connected;
+            document.getElementById('joinBtn').disabled = !isAuthenticated;
+            document.getElementById('leaveBtn').disabled = !isAuthenticated || !currentAuctionId;
+            document.getElementById('bidBtn').disabled = !isAuthenticated || !currentAuctionId;
+            document.getElementById('getAuctionsBtn').disabled = !isAuthenticated;
+
+            // Boutons de chat
+            document.getElementById('joinChatBtn').disabled = !isAuthenticated || inGeneralChat;
+            document.getElementById('leaveChatBtn').disabled = !isAuthenticated || !inGeneralChat;
+            document.getElementById('sendMessageBtn').disabled = !isAuthenticated || !inGeneralChat;
+            document.getElementById('getChatHistoryBtn').disabled = !isAuthenticated;
+        }
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            
+            if (socket) {
+                socket.disconnect();
+            }
+
+            log(`Tentative de connexion à ${serverUrl}...`);
+            
+            socket = io(serverUrl, {
+                transports: ['websocket', 'polling']
+            });
+
+            socket.on('connect', () => {
+                log('✅ Connecté au serveur WebSocket', 'success');
+                updateConnectionStatus('connected', '✅ Connecté');
+                updateButtons();
+            });
+
+            socket.on('disconnect', () => {
+                log('❌ Déconnecté du serveur', 'error');
+                updateConnectionStatus('disconnected', '❌ Déconnecté');
+                isAuthenticated = false;
+                currentAuctionId = null;
+                updateButtons();
+            });
+
+            socket.on('authenticated', (data) => {
+                log(`🔐 Authentifié en tant que: ${data.user.email}`, 'success');
+                updateConnectionStatus('authenticated', `🔐 Authentifié: ${data.user.email}`);
+                isAuthenticated = true;
+                updateButtons();
+            });
+
+            socket.on('authentication_error', (error) => {
+                log(`❌ Erreur d'authentification: ${error.message}`, 'error');
+                isAuthenticated = false;
+                updateButtons();
+            });
+
+            socket.on('auction_joined', (data) => {
+                log(`🏠 Enchère rejointe: ${data.auctionId} (${data.participantCount} participants)`, 'success');
+                currentAuctionId = data.auctionId;
+                updateButtons();
+            });
+
+            socket.on('auction_left', (data) => {
+                log(`🚪 Enchère quittée: ${data.auctionId}`, 'info');
+                currentAuctionId = null;
+                updateButtons();
+            });
+
+            socket.on('new_bid', (data) => {
+                log(`💰 Nouvelle enchère: ${data.bidAmount}€ par ${data.userEmail} (Prix actuel: ${data.currentPrice}€)`, 'warning');
+            });
+
+            socket.on('bid_placed', (data) => {
+                log(`✅ Votre enchère de ${data.bidAmount}€ a été acceptée`, 'success');
+            });
+
+            socket.on('auction_ended', (data) => {
+                log(`🏁 Enchère terminée: ${data.auctionId} - Prix final: ${data.finalPrice}€`, 'info');
+                if (data.winner) {
+                    log(`🏆 Gagnant: ${data.winner.user?.email || 'Utilisateur'} avec ${data.winner.amount}€`, 'success');
+                }
+            });
+
+            socket.on('auction_won', (data) => {
+                log(`🎉 FÉLICITATIONS ! Vous avez remporté l'enchère pour ${data.finalPrice}€`, 'success');
+            });
+
+            socket.on('user_joined_auction', (data) => {
+                log(`👤 ${data.email} a rejoint l'enchère (${data.participantCount} participants)`, 'info');
+            });
+
+            socket.on('user_left_auction', (data) => {
+                log(`👤 Un utilisateur a quitté l'enchère (${data.participantCount} participants)`, 'info');
+            });
+
+            socket.on('active_auctions', (data) => {
+                log(`📋 ${data.count} enchères actives reçues`, 'info');
+                displayAuctions(data.auctions);
+            });
+
+            socket.on('new_auction_created', (data) => {
+                log(`🆕 Nouvelle enchère créée: ${data.auction.id_auction}`, 'info');
+            });
+
+            socket.on('auction_error', (error) => {
+                log(`❌ Erreur d'enchère: ${error.message}`, 'error');
+            });
+
+            socket.on('bid_error', (error) => {
+                log(`❌ Erreur d'enchère: ${error.message}`, 'error');
+            });
+
+            socket.on('auctions_error', (error) => {
+                log(`❌ Erreur de récupération: ${error.message}`, 'error');
+            });
+
+            // === ÉVÉNEMENTS DE CHAT ===
+
+            socket.on('general_chat_joined', (data) => {
+                log(`💬 Chat rejoint: ${data.message} (${data.participantCount} participants)`, 'success');
+                inGeneralChat = true;
+                updateButtons();
+            });
+
+            socket.on('general_chat_left', (data) => {
+                log(`💬 Chat quitté: ${data.message}`, 'info');
+                inGeneralChat = false;
+                updateButtons();
+                document.getElementById('chatMessages').innerHTML = '<p>Vous avez quitté le chat</p>';
+            });
+
+            socket.on('general_chat_history', (data) => {
+                log(`📜 Historique du chat reçu: ${data.messages.length} messages`, 'info');
+                displayChatMessages(data.messages);
+            });
+
+            socket.on('new_general_message', (data) => {
+                log(`💬 Nouveau message de ${data.user.pseudo}: ${data.message.substring(0, 30)}...`, 'info');
+                addChatMessage(data);
+            });
+
+            socket.on('user_joined_chat', (data) => {
+                log(`👤 ${data.pseudo} a rejoint le chat (${data.participantCount} participants)`, 'info');
+            });
+
+            socket.on('user_left_chat', (data) => {
+                log(`👤 Un utilisateur a quitté le chat (${data.participantCount} participants)`, 'info');
+            });
+
+            socket.on('message_edited', (data) => {
+                log(`✏️ Message modifié par ${data.user.pseudo}`, 'warning');
+                updateChatMessage(data);
+            });
+
+            socket.on('message_deleted', (data) => {
+                log(`🗑️ Message supprimé: ${data.messageId}`, 'warning');
+                removeChatMessage(data.messageId);
+            });
+
+            socket.on('chat_error', (error) => {
+                log(`❌ Erreur de chat: ${error.message}`, 'error');
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function authenticate() {
+            const token = document.getElementById('jwtToken').value;
+            if (!token) {
+                alert('Veuillez entrer un token JWT');
+                return;
+            }
+            
+            log('🔐 Tentative d\'authentification...');
+            socket.emit('authenticate', { token });
+        }
+
+        function joinAuction() {
+            const auctionId = document.getElementById('auctionId').value;
+            if (!auctionId) {
+                alert('Veuillez entrer un ID d\'enchère');
+                return;
+            }
+            
+            log(`🏠 Tentative de rejoindre l'enchère: ${auctionId}`);
+            socket.emit('join_auction', { auctionId });
+        }
+
+        function leaveAuction() {
+            if (!currentAuctionId) return;
+            
+            log(`🚪 Tentative de quitter l'enchère: ${currentAuctionId}`);
+            socket.emit('leave_auction', { auctionId: currentAuctionId });
+        }
+
+        function placeBid() {
+            const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+            if (!bidAmount || bidAmount <= 0) {
+                alert('Veuillez entrer un montant valide');
+                return;
+            }
+            
+            if (!currentAuctionId) {
+                alert('Vous devez d\'abord rejoindre une enchère');
+                return;
+            }
+            
+            log(`💰 Tentative d'enchère: ${bidAmount}€ sur ${currentAuctionId}`);
+            socket.emit('place_bid', { auctionId: currentAuctionId, bidAmount });
+        }
+
+        function getActiveAuctions() {
+            log('📋 Récupération des enchères actives...');
+            socket.emit('get_active_auctions');
+        }
+
+        function getStats() {
+            log('📊 Récupération des statistiques...');
+            fetch('/socket/stats')
+                .then(response => response.json())
+                .then(data => {
+                    log(`📊 Statistiques: ${data.connectedUsers} utilisateurs connectés, ${data.activeAuctionRooms} salles actives`, 'info');
+                })
+                .catch(error => {
+                    log(`❌ Erreur lors de la récupération des statistiques: ${error.message}`, 'error');
+                });
+        }
+
+        function displayAuctions(auctions) {
+            const auctionsList = document.getElementById('auctionsList');
+            
+            if (!auctions || auctions.length === 0) {
+                auctionsList.innerHTML = '<p>Aucune enchère active</p>';
+                return;
+            }
+            
+            auctionsList.innerHTML = auctions.map(auction => `
+                <div class="auction-item auction-active">
+                    <h4>Enchère: ${auction.id_auction}</h4>
+                    <p><strong>Prix initial:</strong> ${auction.initial_price}€</p>
+                    <p><strong>Prix actuel:</strong> ${auction.actual_price || auction.initial_price}€</p>
+                    <p><strong>Fin:</strong> ${new Date(auction.end_date).toLocaleString()}</p>
+                    <p><strong>Participants:</strong> ${auction.participantCount || 0}</p>
+                    <button onclick="document.getElementById('auctionId').value='${auction.id_auction}'; joinAuction();">
+                        Rejoindre cette enchère
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function clearLog() {
+            document.getElementById('eventLog').innerHTML = '';
+        }
+
+        // === FONCTIONS DE CHAT ===
+
+        function joinGeneralChat() {
+            log('💬 Tentative de rejoindre le chat général...');
+            socket.emit('join_general_chat');
+        }
+
+        function leaveGeneralChat() {
+            log('💬 Tentative de quitter le chat général...');
+            socket.emit('leave_general_chat');
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('chatMessage');
+            const message = messageInput.value.trim();
+
+            if (!message) {
+                alert('Veuillez entrer un message');
+                return;
+            }
+
+            if (message.length > 1000) {
+                alert('Le message est trop long (maximum 1000 caractères)');
+                return;
+            }
+
+            log(`💬 Envoi du message: ${message.substring(0, 30)}...`);
+            socket.emit('send_general_message', { text: message });
+
+            messageInput.value = '';
+        }
+
+        function getChatHistory() {
+            log('📜 Récupération de l\'historique du chat...');
+            socket.emit('get_general_chat_history', { limit: 50, offset: 0 });
+        }
+
+        function displayChatMessages(messages) {
+            const chatDiv = document.getElementById('chatMessages');
+            chatDiv.innerHTML = '';
+
+            if (!messages || messages.length === 0) {
+                chatDiv.innerHTML = '<p>Aucun message dans l\'historique</p>';
+                return;
+            }
+
+            messages.forEach(message => {
+                addChatMessage(message, false);
+            });
+
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function addChatMessage(messageData, scroll = true) {
+            const chatDiv = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.id = `msg-${messageData.id_message}`;
+            messageElement.style.marginBottom = '10px';
+            messageElement.style.padding = '5px';
+            messageElement.style.borderLeft = '3px solid #007bff';
+            messageElement.style.backgroundColor = '#f8f9fa';
+
+            const timestamp = new Date(messageData.timestamp || messageData.createdAt).toLocaleTimeString();
+            const editedText = messageData.edited_at ? ' (modifié)' : '';
+
+            messageElement.innerHTML = `
+                <div style="font-size: 12px; color: #666; margin-bottom: 2px;">
+                    <strong>${messageData.user.pseudo}</strong> - ${timestamp}${editedText}
+                </div>
+                <div style="color: #333;">
+                    ${messageData.message}
+                </div>
+            `;
+
+            chatDiv.appendChild(messageElement);
+
+            if (scroll) {
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            }
+        }
+
+        function updateChatMessage(messageData) {
+            const messageElement = document.getElementById(`msg-${messageData.id_message}`);
+            if (messageElement) {
+                const timestamp = new Date(messageData.timestamp || messageData.createdAt).toLocaleTimeString();
+                const editedText = messageData.edited_at ? ' (modifié)' : '';
+
+                messageElement.innerHTML = `
+                    <div style="font-size: 12px; color: #666; margin-bottom: 2px;">
+                        <strong>${messageData.user.pseudo}</strong> - ${timestamp}${editedText}
+                    </div>
+                    <div style="color: #333;">
+                        ${messageData.message}
+                    </div>
+                `;
+            }
+        }
+
+        function removeChatMessage(messageId) {
+            const messageElement = document.getElementById(`msg-${messageId}`);
+            if (messageElement) {
+                messageElement.style.opacity = '0.5';
+                messageElement.innerHTML = `
+                    <div style="font-style: italic; color: #999;">
+                        [Message supprimé]
+                    </div>
+                `;
+            }
+        }
+
+        // Permettre d'envoyer un message avec Entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatMessage');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+        });
+
+        // Initialisation
+        updateButtons();
+        log('🚀 Client WebSocket initialisé. Connectez-vous pour commencer.');
+    </script>
+</body>
+</html>

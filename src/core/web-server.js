@@ -23,8 +23,8 @@ const paymentRoutes = require('../controllers/cart/payment.routes');
 const paymentDetailsRoutes = require('../controllers/cart/payment_detail.routes');
 const auctionRoutes = require('../controllers/auction/auction.routes');
 const historyAuctionRoutes = require('../controllers/auction/history_auction.routes');
+const chatRoutes = require('../controllers/chat/chat.routes');
 const { sequelize } = require('../models/mysql.db')
-const http = require('http');
 const {initializeConfigMiddlewares, initializeErrorMiddlwares} = require("./middlewares");
 const {User} = require("../models/models/user/user.model");
 const {Support} = require("../models/models/support/support.model");
@@ -52,12 +52,20 @@ const session = require('express-session');
 const {PaymentDetail} = require("../models/models/cart/payment_detail.model");
 const {CartItem} = require("../models/models/cart/cart_item.model");
 const {Brand} = require("../models/models/product/brand.model");
+const {GeneralChat} = require("../models/models/chat/general_chat.model");
+
+const http = require('http');
+const socketIo = require('socket.io');
+const SocketHandler = require('./socket-handler');
+const AuctionService = require('../services/auction.service');
 
 class WebServer {
     app = undefined;
     port = process.env.PORT;
     server = undefined;
     io = undefined;
+    socketHandler = undefined;
+    auctionService = undefined;
 
     constructor() {
         this.app = express();
@@ -177,6 +185,10 @@ class WebServer {
         // Relation avec le support
         Support.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
+        // Relations liées au chat général
+        User.hasMany(GeneralChat, { foreignKey: 'id_user', as: 'user' });
+        GeneralChat.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
+
         sequelize.sync({ force: false });
 
         initializeConfigMiddlewares(this.app);
@@ -186,14 +198,51 @@ class WebServer {
 
     start() {
         this.server = http.createServer(this.app);
-        this.server.listen(this.port, () => {
-            console.log(`Example app listening on port ${this.port}`);
+        this.io = socketIo(this.server, {
+            cors: {
+                origin: '*',
+                methods: ['GET', 'POST'],
+                allowedHeaders: ['Content-Type', 'Authorization'],
+                credentials: true
+            }
         });
-        console.log(process.env.NODE_ENV);
+
+        // Initialiser le gestionnaire de WebSockets
+        this.socketHandler = new SocketHandler(this.io);
+
+        // Initialiser le service d'enchères
+        this.auctionService = new AuctionService();
+        this.auctionService.setSocketHandler(this.socketHandler);
+
+        // Démarrer le monitoring des enchères
+        this.auctionService.startAuctionMonitoring();
+
+        this.server.listen(this.port, () => {
+            console.log(`🚀 Serveur démarré sur le port ${this.port}`);
+            console.log(`📡 WebSockets activés avec CORS`);
+            console.log(`🔨 Environnement: ${process.env.NODE_ENV}`);
+        });
     }
 
     stop() {
-        this.server.close();
+        console.log('🛑 Arrêt du serveur...');
+
+        // Nettoyer les services
+        if (this.auctionService) {
+            this.auctionService.cleanup();
+        }
+
+        // Fermer les connexions WebSocket
+        if (this.io) {
+            this.io.close();
+        }
+
+        // Fermer le serveur HTTP
+        if (this.server) {
+            this.server.close(() => {
+                console.log('✅ Serveur arrêté proprement');
+            });
+        }
     }
 
     _initializeRoutes() {
@@ -222,6 +271,37 @@ class WebServer {
         this.app.use('/payment-detail', paymentDetailsRoutes.initializeRoutes());
         this.app.use('/auction', auctionRoutes.initializeRoutes());
         this.app.use('/history-auction', historyAuctionRoutes.initializeRoutes());
+        this.app.use('/chat', chatRoutes.initializeRoutes());
+
+        // Route pour les statistiques WebSocket
+        this.app.get('/socket/stats', async (req, res) => {
+            try {
+                const stats = await this.getSocketStats();
+                res.json(stats);
+            } catch (error) {
+                res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+            }
+        });
+    }
+
+    // Méthode pour obtenir les statistiques des WebSockets
+    async getSocketStats() {
+        const stats = {
+            connectedUsers: this.socketHandler ? this.socketHandler.getConnectedUsersCount() : 0,
+            activeAuctionRooms: this.socketHandler ? this.socketHandler.auctionRooms.size : 0,
+            serverUptime: process.uptime(),
+            timestamp: new Date()
+        };
+
+        // Ajouter les statistiques des enchères si disponible
+        if (this.auctionService) {
+            const auctionStats = await this.auctionService.getAuctionStats();
+            if (auctionStats) {
+                stats.auctions = auctionStats;
+            }
+        }
+
+        return stats;
     }
 }
 
