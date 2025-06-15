@@ -20,29 +20,29 @@ router.post('/seeder', async (req, res) => {
 
         const dropsToCreate = [
             {
-                start_date: new Date('2025-02-15T00:00:00Z'),
-                end_date: new Date('2025-02-22T23:59:59Z'),
+                start_date: new Date('2025-06-16T00:00:00Z'),
+                end_date: new Date('2025-06-22T23:59:59Z'),
                 is_premium: false,
                 id_product: products[0].id_product,
                 id_vendor: users[0].id_user
             },
             {
-                start_date: new Date('2025-03-01T00:00:00Z'),
-                end_date: new Date('2025-03-07T23:59:59Z'),
+                start_date: new Date('2025-07-01T00:00:00Z'),
+                end_date: new Date('2025-07-07T23:59:59Z'),
                 is_premium: true,
                 id_product: products[1].id_product,
                 id_vendor: users[1].id_user
             },
             {
-                start_date: new Date('2025-04-10T00:00:00Z'),
-                end_date: new Date('2025-04-17T23:59:59Z'),
+                start_date: new Date('2025-06-16T00:00:00Z'),
+                end_date: new Date('2025-08-17T23:59:59Z'),
                 is_premium: false,
                 id_product: products[2].id_product,
                 id_vendor: users[2].id_user
             },
             {
-                start_date: new Date('2025-05-10T00:00:00Z'),
-                end_date: new Date('2025-06-17T23:59:59Z'),
+                start_date: new Date('2025-06-20T00:00:00Z'),
+                end_date: new Date('2025-06-25T23:59:59Z'),
                 is_premium: false,
                 id_product: products[2].id_product,
                 id_vendor: users[2].id_user
