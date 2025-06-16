@@ -148,6 +148,119 @@ router.delete('/delete/:id', async (req, res) => {
     }
 });
 
+router.post('/add', async (req, res) => {
+    console.log('zebuuu')
+    const { initial_price, actual_price, start_date, end_date, id_product, id_user } = req.body;
+    try {
+        const auction = await Auction.create({
+            initial_price,
+            actual_price,
+            start_date,
+            end_date,
+            id_product,
+            id_user,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+        res.status(201).send(auction);
+    } catch (e) {
+        res.status(500).send({ message: 'Error creating auction', error: e.message });
+    }
+});
+
+// Mettre à jour une enchère
+router.put('/update/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { initial_price, actual_price, start_date, end_date, id_product } = req.body;
+
+        console.log(id, initial_price, actual_price, start_date, end_date, id_product);
+
+        // Vérifier que l'enchère existe
+        const auction = await Auction.findByPk(id);
+        if (!auction) {
+            return res.status(404).send({ message: 'Auction not found' });
+        }
+
+        // Vérifier que les données requises sont présentes
+        if (!initial_price || !start_date || !end_date || !id_product) {
+            return res.status(400).send({
+                message: 'Missing required fields',
+                details: 'initial_price, start_date, end_date, and id_product are required'
+            });
+        }
+
+        // Vérifier que le produit existe
+        let product = await Product.findByPk(id_product);
+        if (!product) {
+            return res.status(404).send({ message: 'Product not found' });
+        }
+
+        // Mettre à jour l'enchère
+        await auction.update({
+            initial_price,
+            actual_price: actual_price !== undefined ? actual_price : auction.actual_price,
+            start_date: new Date(start_date),
+            end_date: new Date(end_date),
+            id_product,
+            updatedAt: new Date()
+        });
+
+        // Récupérer l'enchère mise à jour avec les informations du produit
+        const updatedAuction = await Auction.findByPk(id, {
+            include: [
+                {
+                    model: Product,
+                    include: [
+                        { model: Category, attributes: ['name'] },
+                        { model: Brand, attributes: ['name'] },
+                        {
+                            model: ProductImage,
+                            include: [
+                                { model: Image, attributes: ['image'] }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Formater la réponse pour le frontend
+        let product_updated = updatedAuction.Product;
+        const categoryName = product_updated?.Category?.name || "N/A";
+        const brandName = product_updated?.Brand?.name || "N/A";
+
+        const rawImage = product_updated?.ProductImages?.[0]?.Image?.image;
+        const imageBase64 = rawImage ? `data:image/jpeg;base64,${rawImage.toString('base64')}` : null;
+
+        const formattedAuction = {
+            id_auction: updatedAuction.id_auction,
+            id_product: updatedAuction.id_product,
+            id_user: updatedAuction.id_user,
+            initial_price: updatedAuction.initial_price,
+            actual_price: updatedAuction.actual_price,
+            start_date: updatedAuction.start_date,
+            end_date: updatedAuction.end_date,
+            // Informations du produit
+            name: product_updated.name,
+            brand: brandName,
+            category: categoryName,
+            image: imageBase64 || "/placeholder.png",
+            price: product_updated.price,
+            description: product_updated.description
+        };
+
+        res.status(200).send(formattedAuction);
+    } catch (e) {
+        console.error('Error updating auction:', e);
+        res.status(500).send({
+            message: 'Error updating auction',
+            error: e.message,
+            stack: process.env.NODE_ENV === 'development' ? e.stack : undefined
+        });
+    }
+});
+
 module.exports = {
     initializeRoutes: () => router,
 };
