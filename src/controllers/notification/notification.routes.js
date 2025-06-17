@@ -94,6 +94,74 @@ router.get('/:id_user', async (req, res) => {
     }
 });
 
+router.post('/become-seller', async (req, res) => {
+    try {
+        const { content } = req.body;
+
+        if (!content || typeof content !== 'string') {
+            return res.status(400).send({ message: 'Le champ content est requis et doit être une chaîne de caractères.' });
+        }
+
+        // Recherche du type de notification par son nom
+        const notificationType = await NotificationType.findOne({
+            where: { name: 'Message de support' }
+        });
+
+        if (!notificationType) {
+            return res.status(404).send({ message: 'Type de notification "Message de support" non trouvé.' });
+        }
+
+        // Recherche du user admin (unique)
+        const { Role } = require('../../models/models/user/role.model');
+        const adminRole = await Role.findOne({ where: { name: 'Admin' } });
+
+        if (!adminRole) {
+            return res.status(404).send({ message: 'Le rôle Admin est introuvable.' });
+        }
+
+        const adminUser = await User.findOne({ where: { id_role: adminRole.id_role } });
+
+        if (!adminUser) {
+            return res.status(404).send({ message: 'Aucun utilisateur Admin trouvé.' });
+        }
+
+        // Création de la notification
+        const newNotification = await NotificationRepository.create({
+            content,
+            is_read: false,
+            id_notification_type: notificationType.id_notification_type,
+            id_user: adminUser.id_user,
+        });
+
+        return res.status(201).send(newNotification);
+    } catch (e) {
+        console.error('Erreur lors de la création de la notification /become-seller:', e);
+        res.status(500).send({ message: 'Erreur serveur lors de la création de la notification.', error: e.message });
+    }
+});
+
+router.put('/:id/mark-read', async (req, res) => {
+    try {
+        const id_notification = req.params.id;
+
+        const notification = await NotificationRepository.findById(id_notification);
+
+        if (!notification) {
+            return res.status(404).send({ message: 'Notification non trouvée.' });
+        }
+
+        notification.is_read = true;
+        await notification.save();
+
+        return res.status(200).send({ message: 'Notification marquée comme lue.', notification });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la notification:', error);
+        res.status(500).send({ message: 'Erreur serveur lors de la mise à jour de la notification.', error: error.message });
+    }
+});
+
+
+
 module.exports = {
     initializeRoutes: () => router,
 };

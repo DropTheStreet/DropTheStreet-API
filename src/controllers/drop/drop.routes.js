@@ -309,6 +309,7 @@ router.get('/', async (req, res) => {
 
             return {
                 id: drop.id_drop,
+                id_product: product.id_product,
                 name: product.name,
                 brand: brandName,
                 category: categoryName,
