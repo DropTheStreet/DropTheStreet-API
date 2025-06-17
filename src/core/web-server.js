@@ -199,43 +199,14 @@ class WebServer {
         await this.createTablesInOrder();
 
         this.server = http.createServer(this.app);
-        // Configuration Socket.IO avec gestion des erreurs
-        const socketConfig = {
+        this.io = socketIo(this.server, {
             cors: {
-                origin: function (origin, callback) {
-                    const allowedOrigins = [
-                        'http://localhost:3000',
-                        'http://localhost:3001',
-                        'https://dev.dropthestreet.com',
-                        'https://dropthestreet.com'
-                    ];
-
-                    // Permettre les requêtes sans origin (apps mobiles, Postman)
-                    if (!origin) return callback(null, true);
-
-                    if (allowedOrigins.includes(origin)) {
-                        callback(null, true);
-                    } else {
-                        console.log(`❌ WebSocket CORS bloqué pour: ${origin}`);
-                        callback(null, false);
-                    }
-                },
+                origin: '*',
                 methods: ['GET', 'POST'],
                 allowedHeaders: ['Content-Type', 'Authorization'],
                 credentials: true
-            },
-            transports: ['websocket', 'polling'],
-            allowEIO3: true,
-            pingTimeout: 60000,
-            pingInterval: 25000,
-            maxHttpBufferSize: 1e6,
-            connectTimeout: 45000,
-            path: '/socket.io/'
-        };
-
-        this.io = socketIo(this.server, socketConfig);
-
-        console.log('🔌 Socket.IO configuré avec transports:', socketConfig.transports);
+            }
+        });
 
         // Initialiser le gestionnaire de WebSockets
         this.socketHandler = new SocketHandler(this.io);
