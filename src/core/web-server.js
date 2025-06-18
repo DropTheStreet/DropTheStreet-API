@@ -205,7 +205,8 @@ class WebServer {
                 methods: ['GET', 'POST'],
                 allowedHeaders: ['Content-Type', 'Authorization'],
                 credentials: true
-            }
+            },
+            perMessageDeflate: false
         });
 
         // Initialiser le gestionnaire de WebSockets
