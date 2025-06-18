@@ -25,7 +25,7 @@ class ProductRepository {
 
     async findTop3ByQuantity() {
         return await Product.findAll({
-            order: [['quantity', 'DESC']],
+            order: [['createdAt', 'DESC']],
             limit: 3,
             include: [
                 {

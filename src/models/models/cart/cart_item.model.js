@@ -8,23 +8,20 @@ exports.CartItem = sequelize.define('CartItem', {
         allowNull: false,
         defaultValue: DataTypes.UUIDV4
     },
-    id_shopping_cart: {
+    id_user: {
         type: DataTypes.UUID,
         allowNull: false
+    },
+    id_drop: {
+        type: DataTypes.UUID,
+        allowNull: true
+    },
+    id_auction: {
+        type: DataTypes.UUID,
+        allowNull: true
     },
     id_product: {
         type: DataTypes.UUID,
-        allowNull: false
-    },
-    quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 1
-        }
-    },
-    size: {
-        type: DataTypes.STRING(10),
         allowNull: false
     }
 }, {

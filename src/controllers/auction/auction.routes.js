@@ -5,6 +5,9 @@ const { v4: uuidv4 } = require('uuid');
 const {User} = require("../../models/models/user/user.model");
 const {Product} = require("../../models/models/product/product.model");
 const AuctionRepository  = require("../../models/repositories/auction/auction-repository");
+const {Category} = require("../../models/models/product/category.model");
+const {Brand} = require("../../models/models/product/brand.model");
+const {ProductImage} = require("../../models/models/product/product_image.model");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -23,24 +26,27 @@ router.post('/seeder', async (req, res) => {
             {
                 initial_price: 1000,
                 actual_price: 1500,
-                start_date: new Date('2025-06-16T10:00:00Z'),
-                end_date: new Date('2025-06-18T10:00:00Z'),
+                size: 'M',
+                start_date: new Date('2025-06-19T10:00:00Z'),
+                end_date: new Date('2025-06-25T10:00:00Z'),
                 id_product: products[0].id_product,
                 id_user: users[0].id_user
             },
             {
                 initial_price: 500,
                 actual_price: 750,
+                size: 'L',
                 start_date: new Date('2025-07-11T12:00:00Z'),
-                end_date: new Date('2025-07-14T12:00:00Z'),
+                end_date: new Date('2025-07-17T12:00:00Z'),
                 id_product: products[1].id_product,
                 id_user: users[1].id_user
             },
             {
                 initial_price: 2000,
                 actual_price: 2500,
-                start_date: new Date('2025-06-16T15:00:00Z'),
-                end_date: new Date('2025-06-20T15:00:00Z'),
+                size: 'S',
+                start_date: new Date('2025-06-19T15:00:00Z'),
+                end_date: new Date('2025-07-20T15:00:00Z'),
                 id_product: products[2].id_product,
                 id_user: users[2].id_user
             },
@@ -51,6 +57,7 @@ router.post('/seeder', async (req, res) => {
                 id_auction: uuidv4(),
                 initial_price: auction.initial_price,
                 actual_price: auction.actual_price,
+                size: auction.size,
                 start_date: auction.start_date,
                 end_date: auction.end_date,
                 id_product: auction.id_product,
@@ -149,12 +156,12 @@ router.delete('/delete/:id', async (req, res) => {
 });
 
 router.post('/add', async (req, res) => {
-    console.log('zebuuu')
-    const { initial_price, actual_price, start_date, end_date, id_product, id_user } = req.body;
+    const { initial_price, actual_price, start_date, end_date, id_product, id_user, size } = req.body;
     try {
         const auction = await Auction.create({
             initial_price,
             actual_price,
+            size,
             start_date,
             end_date,
             id_product,
@@ -172,9 +179,9 @@ router.post('/add', async (req, res) => {
 router.put('/update/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { initial_price, actual_price, start_date, end_date, id_product } = req.body;
+        const { initial_price, actual_price, size, start_date, end_date, id_product } = req.body;
 
-        console.log(id, initial_price, actual_price, start_date, end_date, id_product);
+        console.log(id, initial_price, actual_price, size, start_date, end_date, id_product);
 
         // Vérifier que l'enchère existe
         const auction = await Auction.findByPk(id);
@@ -183,10 +190,10 @@ router.put('/update/:id', async (req, res) => {
         }
 
         // Vérifier que les données requises sont présentes
-        if (!initial_price || !start_date || !end_date || !id_product) {
+        if (!initial_price || !start_date || !end_date || !id_product || !size) {
             return res.status(400).send({
                 message: 'Missing required fields',
-                details: 'initial_price, start_date, end_date, and id_product are required'
+                details: 'initial_price, start_date, end_date, size and id_product are required'
             });
         }
 
@@ -200,6 +207,7 @@ router.put('/update/:id', async (req, res) => {
         await auction.update({
             initial_price,
             actual_price: actual_price !== undefined ? actual_price : auction.actual_price,
+            size,
             start_date: new Date(start_date),
             end_date: new Date(end_date),
             id_product,
@@ -239,6 +247,7 @@ router.put('/update/:id', async (req, res) => {
             id_user: updatedAuction.id_user,
             initial_price: updatedAuction.initial_price,
             actual_price: updatedAuction.actual_price,
+            size: updatedAuction.size,
             start_date: updatedAuction.start_date,
             end_date: updatedAuction.end_date,
             // Informations du produit

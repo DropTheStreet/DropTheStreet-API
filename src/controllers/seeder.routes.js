@@ -220,19 +220,6 @@ router.post('/seeder', async (req, res) => {
 
         console.log('Drop seeder was created successfully');
 
-        //Shopping cart
-
-        const cartSeederResponse = await fetch('http://localhost:3000/cart/seeder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (!cartSeederResponse.ok) {
-            console.error('Error during execution of cart seeder');
-        }
-
-        console.log('Cart seeder was created successfully');
-
         //Payment status
 
         const paymentStatusSeederResponse = await fetch('http://localhost:3000/payment-status/seeder', {
@@ -287,6 +274,19 @@ router.post('/seeder', async (req, res) => {
         console.log('History auction seeder was created successfully');
 
         res.status(200).send({ message: 'All seeders was executed successfully' });
+
+        //Shopping cart
+
+        const cartSeederResponse = await fetch('http://localhost:3000/shopping-cart/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!cartSeederResponse.ok) {
+            console.error('Error during execution of cart seeder');
+        }
+
+        console.log('Cart seeder was created successfully');
 
     } catch (error) {
         console.error('Error during execution of seeders:', error);

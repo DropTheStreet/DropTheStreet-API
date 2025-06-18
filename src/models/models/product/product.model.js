@@ -16,20 +16,6 @@ exports.Product = sequelize.define('Product', {
         type: DataTypes.STRING(255),
         allowNull: false
     },
-    price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-        validate: {
-            min: 0
-        }
-    },
-    quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: {
-            min: 0
-        }
-    },
     id_category: {
         type: DataTypes.UUID,
         allowNull: false

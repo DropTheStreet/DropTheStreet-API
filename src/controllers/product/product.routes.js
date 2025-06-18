@@ -41,29 +41,23 @@ router.post('/seeder', async (req, res) => {
 
         const productsToCreate = [
             {
-                name: 'Produit 1',
-                description: 'Description du produit 1',
-                price: 19.99,
+                name: 'T-Shirt',
+                description: 'T-Shirt en coton',
                 image: null,
-                quantity: 100,
                 id_category: categories[0].id_category,
                 id_brand: brands[0].id_brand,
             },
             {
-                name: 'Produit 2',
-                description: 'Description du produit 2',
-                price: 29.99,
+                name: 'Baskets',
+                description: 'Baskets en cuir',
                 image: null,
-                quantity: 50,
                 id_category: categories[1].id_category,
                 id_brand: brands[1].id_brand,
             },
             {
-                name: 'Produit 3',
-                description: 'Description du produit 3',
-                price: 39.99,
+                name: 'Sweat',
+                description: 'Sweat en laine',
                 image: null,
-                quantity: 200,
                 id_category: categories[2].id_category,
                 id_brand: brands[2].id_brand,
             }
@@ -74,9 +68,7 @@ router.post('/seeder', async (req, res) => {
                 id_product_favorite: uuidv4(),
                 name: product.name,
                 description: product.description,
-                price: product.price,
                 image: product.image,
-                quantity: product.quantity,
                 id_category: product.id_category,
                 id_brand: product.id_brand,
                 createdAt: new Date(),
@@ -164,9 +156,7 @@ router.get('/vendor/:id_vendor', async (req, res) => {
             return {
                 id_product: product.id_product,
                 name: product.name,
-                price: product.price,
                 description: product.description,
-                quantity: product.quantity,
                 id_category: product.id_category,
                 id_brand: product.id_brand,
                 category: product.Category?.name || 'N/A',
@@ -185,7 +175,7 @@ router.get('/vendor/:id_vendor', async (req, res) => {
 // Créer un nouveau produit
 router.post('/', async (req, res) => {
     try {
-        const { id_user, name, id_category, id_brand, price, quantity, description } = req.body;
+        const { id_user, name, id_category, id_brand, description } = req.body;
 
         // Récupérer l'ID du vendeur à partir du token
         const vendorId = id_user;
@@ -194,15 +184,13 @@ router.post('/', async (req, res) => {
             return res.status(400).send({ message: 'Name, category and brand are required' });
         }
 
-        console.log(vendorId, name, id_category, id_brand, price, quantity, description);
+        console.log(vendorId, name, id_category, id_brand, description);
         // Créer un nouveau produit
         const newProduct = await Product.create({
             id_product: uuidv4(), // Générer un UUID pour l'ID du produit
             name,
             id_category,
             id_brand,
-            price: price || 0,
-            quantity: quantity || 1,
             description: description || '',
             id_vendor: vendorId,
             createdAt: new Date(),
@@ -221,9 +209,7 @@ router.post('/', async (req, res) => {
         const formattedProduct = {
             id_product: product.id_product,
             name: product.name,
-            price: product.price,
             description: product.description,
-            quantity: product.quantity,
             id_category: product.id_category,
             id_brand: product.id_brand,
             category: product.Category?.name || 'N/A',
@@ -266,9 +252,7 @@ router.get('/:id', async (req, res) => {
         const formattedProduct = {
             id_product: product.id_product,
             name: product.name,
-            price: product.price,
             description: product.description,
-            quantity: product.quantity,
             id_category: product.id_category,
             id_brand: product.id_brand,
             category: product.Category?.name || 'N/A',
@@ -359,9 +343,7 @@ router.post('/image', upload.array('images'), async (req, res) => {
         const formattedProduct = {
             id_product: updatedProduct.id_product,
             name: updatedProduct.name,
-            price: updatedProduct.price,
             description: updatedProduct.description,
-            quantity: updatedProduct.quantity,
             id_category: updatedProduct.id_category,
             id_brand: updatedProduct.id_brand,
             category: updatedProduct.Category?.name || 'N/A',

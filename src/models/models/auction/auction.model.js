@@ -16,6 +16,10 @@ exports.Auction = sequelize.define('Auction', {
         type: DataTypes.INTEGER,
         allowNull: true
     },
+    size: {
+        type: DataTypes.STRING(10),
+        allowNull: false,
+    },
     //end and start date will be definded by devs, so it can't be "created at"
     start_date: {
         type: DataTypes.DATE,

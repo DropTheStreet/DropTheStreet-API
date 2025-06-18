@@ -20,10 +20,13 @@ router.post('/seeder', async (req, res) => {
 
         const dropsToCreate = [
             {
-                start_date: new Date('2025-06-16T00:00:00Z'),
-                end_date: new Date('2025-06-22T23:59:59Z'),
+                start_date: new Date('2025-06-18T00:00:00Z'),
+                end_date: new Date('2025-06-27T23:59:59Z'),
                 is_premium: false,
                 id_product: products[0].id_product,
+                price: 39.99,
+                quantity: 200,
+                size: 'M',
                 id_vendor: users[0].id_user
             },
             {
@@ -31,20 +34,29 @@ router.post('/seeder', async (req, res) => {
                 end_date: new Date('2025-07-07T23:59:59Z'),
                 is_premium: true,
                 id_product: products[1].id_product,
+                price: 70.55,
+                quantity: 30,
+                size: 'L',
                 id_vendor: users[1].id_user
             },
             {
-                start_date: new Date('2025-06-16T00:00:00Z'),
-                end_date: new Date('2025-08-17T23:59:59Z'),
+                start_date: new Date('2025-06-19T00:00:00Z'),
+                end_date: new Date('2025-08-29T23:59:59Z'),
                 is_premium: false,
                 id_product: products[2].id_product,
+                price: 129.00,
+                quantity: 15,
+                size: 'S',
                 id_vendor: users[2].id_user
             },
             {
                 start_date: new Date('2025-06-20T00:00:00Z'),
-                end_date: new Date('2025-06-25T23:59:59Z'),
+                end_date: new Date('2025-07-25T23:59:59Z'),
                 is_premium: false,
                 id_product: products[2].id_product,
+                price: 63.49,
+                quantity: 23,
+                size: '45',
                 id_vendor: users[2].id_user
             }
         ];
@@ -55,7 +67,10 @@ router.post('/seeder', async (req, res) => {
                 end_date: drop.end_date,
                 is_premium: drop.is_premium,
                 id_product: drop.id_product,
+                price: drop.price,
+                quantity: drop.quantity,
                 id_vendor: drop.id_vendor,
+                size: drop.size,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             });
@@ -72,7 +87,7 @@ router.post('/seeder', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const { start_date, end_date, is_premium, id_product, id_vendor } = req.body;
+    const { start_date, end_date, is_premium, id_product, price, quantity, size, id_vendor } = req.body;
     try {
         const drop = await Drop.create({
             id_vendor,
@@ -80,6 +95,9 @@ router.post('/', async (req, res) => {
             end_date,
             is_premium,
             id_product,
+            price,
+            quantity,
+            size,
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -153,15 +171,17 @@ router.get('/vendor/:id_vendor', async (req, res) => {
                 id_drop: drop.id_drop,
                 id_product: drop.id_product,
                 id_vendor: vendorId,
+                quantity: drop.quantity,
+                price: drop.price,
+                size: drop.size,
                 start_date: drop.start_date,
                 end_date: drop.end_date,
-                is_prenium: drop.is_premium,
+                is_premium: drop.is_premium,
                 // Informations du produit
                 name: product.name,
                 brand: brandName,
                 category: categoryName,
                 image: imageBase64 || "/placeholder.png",
-                price: product.price,
                 description: product.description
             }
         });
@@ -177,9 +197,7 @@ router.get('/vendor/:id_vendor', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { start_date, end_date, is_premium, id_product } = req.body;
-
-        console.log(id, start_date, end_date, is_premium, id_product);
+        const { start_date, end_date, is_premium, id_product, price, quantity, size } = req.body;
 
         // Vérifier que le drop existe
         const drop = await Drop.findByPk(id);
@@ -188,10 +206,10 @@ router.put('/:id', async (req, res) => {
         }
 
         // Vérifier que les données requises sont présentes
-        if (!start_date || !end_date || !id_product) {
+        if (!start_date || !end_date || !id_product || !price|| !quantity || !size) {
             return res.status(400).send({
                 message: 'Missing required fields',
-                details: 'start_date, end_date, and id_product are required'
+                details: 'start_date, end_date, id_product, price, quantity and size are required'
             });
         }
 
@@ -207,6 +225,9 @@ router.put('/:id', async (req, res) => {
             end_date: new Date(end_date),
             is_premium: is_premium !== undefined ? is_premium : drop.is_premium,
             id_product,
+            quantity,
+            price,
+            size,
             updatedAt: new Date()
         });
 
@@ -241,15 +262,17 @@ router.put('/:id', async (req, res) => {
             id_drop: updatedDrop.id_drop,
             id_product: updatedDrop.id_product,
             id_vendor: updatedDrop.id_vendor,
+            price: updatedDrop.price,
+            quantity: updatedDrop.quantity,
+            size: updatedDrop.size,
             start_date: updatedDrop.start_date,
             end_date: updatedDrop.end_date,
-            is_prenium: updatedDrop.is_premium,
+            is_premium: updatedDrop.is_premium,
             // Informations du produit
             name: product_updated.name,
             brand: brandName,
             category: categoryName,
             image: imageBase64 || "/placeholder.png",
-            price: product_updated.price,
             description: product_updated.description
         };
 
@@ -310,9 +333,14 @@ router.get('/', async (req, res) => {
             return {
                 id: drop.id_drop,
                 id_product: product.id_product,
+                start_date: drop.start_date,
+                end_date: drop.end_date,
                 name: product.name,
                 brand: brandName,
                 category: categoryName,
+                price: drop.price,
+                quantity: drop.quantity,
+                size: drop.size,
                 image: imageBase64 || "/placeholder.png",
                 dropDate: drop.start_date,
                 isVip: drop.is_premium

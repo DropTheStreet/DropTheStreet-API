@@ -15,9 +15,9 @@ const notificationTypeRoutes = require('../controllers/notification/notification
 const badgeRoutes = require('../controllers/gamification/badge.routes');
 const challengeRoutes = require('../controllers/gamification/challenge.routes');
 const userBadgeRoutes = require('../controllers/gamification/user_badge.routes');
+const cartItemRoutes = require('../controllers/cart/cart_item.routes');
 const userChallengeRoutes = require('../controllers/gamification/user_challenge.routes');
 const dropRoutes = require('../controllers/drop/drop.routes');
-const cartRoutes = require('../controllers/cart/shopping_cart.routes');
 const paymentStatusRoutes = require('../controllers/cart/payment_status.routes');
 const paymentRoutes = require('../controllers/cart/payment.routes');
 const paymentDetailsRoutes = require('../controllers/cart/payment_detail.routes');
@@ -42,7 +42,6 @@ const {HistoryAuction} = require("../models/models/auction/history_auction.model
 const {Auction} = require("../models/models/auction/auction.model");
 const {PaymentStatus} = require("../models/models/cart/payment_status.model");
 const {Payment} = require("../models/models/cart/payment.model");
-const {ShoppingCart} = require("../models/models/cart/shopping_cart.model");
 const {Category} = require("../models/models/product/category.model");
 const {Role} = require("../models/models/user/role.model");
 const {UserBadge} = require("../models/models/gamification/user_badge.model");
@@ -119,18 +118,22 @@ class WebServer {
         Product.hasMany(PaymentDetail, { foreignKey: 'id_product' });
         PaymentDetail.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
 
-        // Relations entre l'utilisateur et son panier
-        User.hasOne(ShoppingCart, { foreignKey: 'id_user' });
-        ShoppingCart.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+        //Relations entre user, drop, auction, product et panier
+        // Relations entre CartItem et User
+        User.hasMany(CartItem, { foreignKey: 'id_user' });
+        CartItem.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
 
-        // Relations entre ShoppingCart et CartItem
-        ShoppingCart.hasMany(CartItem, { foreignKey: 'id_shopping_cart' });
-        CartItem.belongsTo(ShoppingCart, { foreignKey: 'id_shopping_cart', onDelete: 'CASCADE' });
+        // Relation entre CartItem et Drop
+        Drop.hasMany(CartItem, { foreignKey: 'id_drop' });
+        CartItem.belongsTo(Drop, { foreignKey: 'id_drop', onDelete: 'SET NULL' });
 
-        // Relations entre CartItem et Product
+        // Relation entre CartItem et Auction
+        Auction.hasMany(CartItem, { foreignKey: 'id_auction' });
+        CartItem.belongsTo(Auction, { foreignKey: 'id_auction', onDelete: 'SET NULL' });
+
+        // Relation entre CartItem et Product
         Product.hasMany(CartItem, { foreignKey: 'id_product' });
         CartItem.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
-
 
         // Relations liées aux produits et images
         Product.hasMany(ProductImage, { foreignKey: 'id_product' });
@@ -272,13 +275,13 @@ class WebServer {
         this.app.use('/user-badge', userBadgeRoutes.initializeRoutes());
         this.app.use('/user-challenge', userChallengeRoutes.initializeRoutes());
         this.app.use('/drop', dropRoutes.initializeRoutes());
-        this.app.use('/cart', cartRoutes.initializeRoutes());
         this.app.use('/payment-status', paymentStatusRoutes.initializeRoutes());
         this.app.use('/payment', paymentRoutes.initializeRoutes());
         this.app.use('/payment-detail', paymentDetailsRoutes.initializeRoutes());
         this.app.use('/auction', auctionRoutes.initializeRoutes());
         this.app.use('/history-auction', historyAuctionRoutes.initializeRoutes());
         this.app.use('/chat', chatRoutes.initializeRoutes());
+        this.app.use('/shopping-cart', cartItemRoutes.initializeRoutes());
 
         // Route pour les statistiques WebSocket
         this.app.get('/socket/stats', async (req, res) => {
@@ -342,7 +345,6 @@ class WebServer {
             await Drop.sync({ force: false });
             await Auction.sync({ force: false });
             await GeneralChat.sync({ force: false });
-            await ShoppingCart.sync({ force: false });
             await Payment.sync({ force: false });
             await Support.sync({ force: false });
             await Notification.sync({ force: false });
