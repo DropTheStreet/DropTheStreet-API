@@ -112,6 +112,9 @@ const tokenMiddlware = (app) => {
                     { url: "/product/popular", methods: ["GET"] },
                     { url: "/drop/seeder", methods: ["POST"] },
                     { url: "/drop/today", methods: ["GET"] },
+                    { url: "/drop/next", methods: ["GET"] },
+                    { url: /^\/product-image\/[^/]+$/, methods: ["GET"] },
+                    { url: "/auction/active", methods: ["GET"] },
                     { url: "/cart/", methods: ["GET"] },
                     { url: "/cart/seeder", methods: ["POST"] },
                     { url: "/payment-status/", methods: ["GET"] },
@@ -125,7 +128,7 @@ const tokenMiddlware = (app) => {
                     { url: "/all/seeder", methods: ["POST"] },
                     { url: "/user/register", methods: ["POST"] },
                     { url: "/user/forgot-password", methods: ["POST"] },
-                    { url: /^\/user\/reset-password\/.*/, methods: ["POST"] }, // 🔥 Exclusion avec regex
+                    { url: /^\/user\/reset-password\/.*/, methods: ["POST"] },
                     { url: "/user/auth/google", methods: ["GET"] },
                     { url: "/user/test-env", methods: ["GET"] },
                     { url: "/user/auth/google/callback", methods: ["GET"] },
