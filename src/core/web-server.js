@@ -206,7 +206,12 @@ class WebServer {
                 allowedHeaders: ['Content-Type', 'Authorization'],
                 credentials: true
             },
-            perMessageDeflate: false
+            // Désactiver toute compression
+            perMessageDeflate: false,
+            compression: false,
+            httpCompression: false,
+            // Forcer le polling si nécessaire
+            transports: ['polling']
         });
 
         // Initialiser le gestionnaire de WebSockets
