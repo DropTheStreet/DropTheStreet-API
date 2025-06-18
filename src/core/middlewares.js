@@ -10,27 +10,12 @@ const initJsonHandlerMiddlware = (app) => {
 };
 const staticMiddlware = (app) => app.use(express.static('public'));
 const corsMiddlware = (app) => {
-    // Configuration CORS basée sur l'environnement
     let allowedOrigins = [
         'http://localhost:3001',
         'http://127.0.0.1:3001',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000'
+        'https://dev.dropthestreet.com',
+        'https://dropthestreet.com',
     ];
-
-    // Ajouter les domaines de production/développement
-    if (process.env.NODE_ENV === 'production') {
-        allowedOrigins.push(
-            'https://dropthestreet.com',
-            'https://www.dropthestreet.com'
-        );
-    } else {
-        // En développement, ajouter les domaines de dev
-        allowedOrigins.push(
-            'http://dev.dropthestreet.com',
-            'https://dev.dropthestreet.com'
-        );
-    }
 
     const corsOptions = {
         origin: function (origin, callback) {
