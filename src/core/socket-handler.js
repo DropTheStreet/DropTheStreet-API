@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models/models/user/user.model');
 const AuctionSocketController = require('../controllers/auction/auction-socket.controller');
 const ChatSocketController = require('../controllers/chat/chat-socket.controller');
+const AuctionChatSocketController = require('../controllers/auction/auction-chat-socket.controller');
+const DropChatSocketController = require('../controllers/drop/drop-chat-socket.controller');
 
 class SocketHandler {
     constructor(io) {
@@ -10,12 +12,14 @@ class SocketHandler {
         this.auctionRooms = new Map(); // Map pour stocker les salles d'enchères
         this.auctionSocketController = new AuctionSocketController(io, this);
         this.chatSocketController = new ChatSocketController(io, this);
+        this.auctionChatSocketController = new AuctionChatSocketController(io, this);
+        this.dropChatSocketController = new DropChatSocketController(io, this);
         this.initializeSocketEvents();
     }
 
     initializeSocketEvents() {
         this.io.on('connection', (socket) => {
-            console.log(`Nouvelle connexion WebSocket: ${socket.id}`);
+            console.log(`🔗 [${new Date().toISOString()}] Nouvelle connexion WebSocket: ${socket.id}`);
 
             // Authentification du socket
             socket.on('authenticate', async (data) => {
@@ -35,6 +39,26 @@ class SocketHandler {
                 } catch (error) {
                     console.error('Erreur lors de la connexion à l\'enchère:', error);
                     socket.emit('auction_error', { message: 'Impossible de rejoindre l\'enchère' });
+                }
+            });
+
+            // Rejoindre une salle d'enchère (nouveau)
+            socket.on('join_auction_room', async (data) => {
+                try {
+                    await this.auctionSocketController.joinAuctionRoom(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la connexion à la salle d\'enchère:', error);
+                    socket.emit('auction_error', { message: 'Impossible de rejoindre la salle d\'enchère' });
+                }
+            });
+
+            // S'abonner aux mises à jour d'enchères (nouveau)
+            socket.on('subscribe_to_auction_updates', async (data) => {
+                try {
+                    await this.auctionSocketController.subscribeToAuctionUpdates(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de l\'abonnement aux mises à jour:', error);
+                    socket.emit('auction_error', { message: 'Impossible de s\'abonner aux mises à jour' });
                 }
             });
 
@@ -64,6 +88,16 @@ class SocketHandler {
                 } catch (error) {
                     console.error('Erreur lors de la récupération des enchères:', error);
                     socket.emit('auctions_error', { message: 'Impossible de récupérer les enchères' });
+                }
+            });
+
+            // Récupérer l'historique des enchères
+            socket.on('get_bid_history', async (data) => {
+                try {
+                    await this.auctionSocketController.getBidHistory(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la récupération de l\'historique des enchères:', error);
+                    socket.emit('auction_error', { message: 'Impossible de récupérer l\'historique des enchères' });
                 }
             });
 
@@ -158,6 +192,110 @@ class SocketHandler {
                 } catch (error) {
                     console.error('Erreur lors de la récupération des statistiques:', error);
                     socket.emit('chat_error', { message: 'Impossible de récupérer les statistiques' });
+                }
+            });
+
+            // === ÉVÉNEMENTS DE CHAT D'ENCHÈRES ===
+
+            // Rejoindre le chat d'une enchère spécifique
+            socket.on('join_auction_chat', async (data) => {
+                try {
+                    await this.auctionChatSocketController.joinAuctionChat(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la connexion au chat d\'enchère:', error);
+                    socket.emit('auction_chat_error', { message: 'Impossible de rejoindre le chat d\'enchère' });
+                }
+            });
+
+            // Quitter le chat d'une enchère
+            socket.on('leave_auction_chat', async (data) => {
+                try {
+                    await this.auctionChatSocketController.leaveAuctionChat(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la déconnexion du chat d\'enchère:', error);
+                    socket.emit('auction_chat_error', { message: 'Impossible de quitter le chat d\'enchère' });
+                }
+            });
+
+            // Récupérer l'historique du chat d'une enchère
+            socket.on('get_auction_chat_history', async (data) => {
+                try {
+                    await this.auctionChatSocketController.getAuctionChatHistory(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la récupération de l\'historique du chat d\'enchère:', error);
+                    socket.emit('auction_chat_error', { message: 'Impossible de récupérer l\'historique du chat' });
+                }
+            });
+
+            // Envoyer un message dans le chat d'une enchère
+            socket.on('send_auction_message', async (messageData) => {
+                try {
+                    console.log('💬 [SOCKET-HANDLER] Réception message d\'enchère:', messageData);
+                    await this.auctionChatSocketController.sendAuctionMessage(socket, messageData);
+                } catch (error) {
+                    console.error('❌ [SOCKET-HANDLER] Erreur lors de l\'envoi du message d\'enchère:', error);
+                    socket.emit('auction_chat_error', {
+                        message: error.message || 'Impossible d\'envoyer le message',
+                        source: 'socket-handler',
+                        error: error.toString()
+                    });
+                }
+            });
+
+            // === ÉVÉNEMENTS DE CHAT DE DROPS ===
+
+            // Rejoindre le chat d'un drop spécifique
+            socket.on('join_drop_chat', async (data) => {
+                try {
+                    await this.dropChatSocketController.joinDropChat(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la connexion au chat de drop:', error);
+                    socket.emit('drop_chat_error', { message: 'Impossible de rejoindre le chat de drop' });
+                }
+            });
+
+            // Quitter le chat d'un drop
+            socket.on('leave_drop_chat', async (data) => {
+                try {
+                    await this.dropChatSocketController.leaveDropChat(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la déconnexion du chat de drop:', error);
+                    socket.emit('drop_chat_error', { message: 'Impossible de quitter le chat de drop' });
+                }
+            });
+
+            // Récupérer l'historique du chat d'un drop
+            socket.on('get_drop_chat_history', async (data) => {
+                try {
+                    await this.dropChatSocketController.getDropChatHistory(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la récupération de l\'historique du chat de drop:', error);
+                    socket.emit('drop_chat_error', { message: 'Impossible de récupérer l\'historique du chat' });
+                }
+            });
+
+            // Envoyer un message dans le chat d'un drop
+            socket.on('send_drop_message', async (messageData) => {
+                try {
+                    console.log('💬 [SOCKET-HANDLER] Réception message de drop:', messageData);
+                    await this.dropChatSocketController.sendDropMessage(socket, messageData);
+                } catch (error) {
+                    console.error('❌ [SOCKET-HANDLER] Erreur lors de l\'envoi du message de drop:', error);
+                    socket.emit('drop_chat_error', {
+                        message: error.message || 'Impossible d\'envoyer le message',
+                        source: 'socket-handler',
+                        error: error.toString()
+                    });
+                }
+            });
+
+            // Obtenir les statistiques du chat d'un drop
+            socket.on('get_drop_chat_stats', async (data) => {
+                try {
+                    await this.dropChatSocketController.getDropChatStats(socket, data);
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des statistiques du chat de drop:', error);
+                    socket.emit('drop_chat_error', { message: 'Impossible de récupérer les statistiques' });
                 }
             });
 
@@ -293,6 +431,12 @@ class SocketHandler {
 
         // Nettoyer les participants du chat
         this.chatSocketController.cleanupDisconnectedUsers();
+
+        // Nettoyer les chats d'enchères
+        this.auctionChatSocketController.handleDisconnection(socket);
+
+        // Nettoyer les chats de drops
+        this.dropChatSocketController.handleDisconnection(socket);
     }
 
     // Méthodes utilitaires

@@ -130,7 +130,6 @@ const tokenMiddlware = (app) => {
                     { url: "/user/forgot-password", methods: ["POST"] },
                     { url: /^\/user\/reset-password\/.*/, methods: ["POST"] },
                     { url: "/user/auth/google", methods: ["GET"] },
-                    { url: "/user/test-env", methods: ["GET"] },
                     { url: "/user/auth/google/callback", methods: ["GET"] },
                 ]
             })

@@ -90,12 +90,6 @@ router.post('/seeder', async (req, res) => {
         res.status(500).send({ message: 'Error creating users', error: e.message });
     }
 });
-router.get('/test-env', async (req, res) => {
-    res.json({
-        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? '✅ OK' : '❌ MISSING',
-        API_URL: process.env.API_URL,
-    });
-});
 
 router.get('/', async (req, res) => {
     try {

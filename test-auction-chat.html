@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat d'Enchères - DropTheStreet</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.error { background-color: #fff3cd; color: #856404; }
+        
+        .chat-container {
+            display: flex;
+            gap: 20px;
+        }
+        .chat-section {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: white;
+            border-left: 3px solid #007bff;
+        }
+        .message.own {
+            background-color: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        .message-header {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            float: right;
+        }
+        .message-text {
+            margin-top: 5px;
+            color: #555;
+        }
+        
+        input, button, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .auction-info {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .participants {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔨 Test Chat d'Enchères - DropTheStreet WebSocket</h1>
+    
+    <div class="container">
+        <h2>Connexion</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>URL du serveur:</label>
+                <input type="text" id="serverUrl" value="http://localhost:3000" placeholder="http://localhost:3000">
+            </div>
+            <div class="form-group">
+                <label>Token JWT:</label>
+                <input type="text" id="jwtToken" value="test" placeholder="Votre token JWT">
+            </div>
+            <button onclick="connectToServer()">Se connecter</button>
+            <button onclick="disconnectFromServer()">Se déconnecter</button>
+        </div>
+        <div id="connectionStatus" class="status disconnected">Déconnecté</div>
+    </div>
+
+    <div class="container">
+        <h2>Gestion des Enchères</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>ID de l'enchère:</label>
+                <input type="text" id="auctionId" placeholder="UUID de l'enchère" value="test-auction-123">
+            </div>
+            <button onclick="joinAuctionChat()">Rejoindre Chat Enchère</button>
+            <button onclick="leaveAuctionChat()">Quitter Chat Enchère</button>
+            <button onclick="getAuctionHistory()">Récupérer Historique</button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-section">
+            <h3>💬 Chat d'Enchère</h3>
+            <div class="auction-info">
+                <strong>Enchère:</strong> <span id="currentAuctionId">Aucune</span>
+                <div class="participants">Participants: <span id="participantCount">0</span></div>
+            </div>
+            <div id="auctionMessages" class="messages"></div>
+            <div class="controls">
+                <input type="text" id="auctionMessageInput" placeholder="Tapez votre message..." style="flex: 1;">
+                <button onclick="sendAuctionMessage()">Envoyer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Logs</h2>
+        <div id="logs" class="messages" style="height: 200px;"></div>
+        <button onclick="clearLogs()">Effacer les logs</button>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentAuctionId = null;
+        let isAuthenticated = false;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `message ${type}`;
+            logEntry.innerHTML = `<span class="message-time">${timestamp}</span><div class="message-text">${message}</div>`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+        }
+
+        function connectToServer() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const token = document.getElementById('jwtToken').value;
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            log(`Connexion à ${serverUrl}...`);
+            socket = io(serverUrl, {
+                transports: ['polling', 'websocket'],
+                upgrade: true,
+                rememberUpgrade: false
+            });
+
+            // Événements de connexion
+            socket.on('connect', () => {
+                log('✅ Connecté au serveur WebSocket');
+                updateConnectionStatus('connected', 'Connecté');
+                
+                // Authentification automatique
+                if (token) {
+                    socket.emit('authenticate', { token: token });
+                }
+            });
+
+            socket.on('disconnect', () => {
+                log('❌ Déconnecté du serveur');
+                updateConnectionStatus('disconnected', 'Déconnecté');
+                isAuthenticated = false;
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Erreur de connexion: ${error.message}`, 'error');
+                updateConnectionStatus('error', 'Erreur de connexion');
+            });
+
+            // Événements d'authentification
+            socket.on('authenticated', (data) => {
+                log(`✅ Authentifié: ${data.message}`);
+                isAuthenticated = true;
+            });
+
+            socket.on('authentication_error', (error) => {
+                log(`❌ Erreur d'authentification: ${error.message}`, 'error');
+                isAuthenticated = false;
+            });
+
+            // Événements de chat d'enchères
+            socket.on('auction_chat_joined', (data) => {
+                log(`✅ Chat d'enchère rejoint: ${data.auctionId}`);
+                currentAuctionId = data.auctionId;
+                document.getElementById('currentAuctionId').textContent = data.auctionId;
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('auction_chat_left', (data) => {
+                log(`✅ Chat d'enchère quitté: ${data.auctionId}`);
+                currentAuctionId = null;
+                document.getElementById('currentAuctionId').textContent = 'Aucune';
+                document.getElementById('participantCount').textContent = '0';
+                clearAuctionMessages();
+            });
+
+            socket.on('auction_chat_history', (data) => {
+                log(`📜 Historique reçu: ${data.messages.length} messages`);
+                displayAuctionMessages(data.messages, true);
+            });
+
+            socket.on('new_auction_message', (message) => {
+                log(`💬 Nouveau message d'enchère de ${message.user.pseudo}`);
+                displayAuctionMessage(message);
+            });
+
+            socket.on('user_joined_auction_chat', (data) => {
+                log(`👤 ${data.pseudo} a rejoint le chat de l'enchère`);
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('user_left_auction_chat', (data) => {
+                log(`👤 Un utilisateur a quitté le chat de l'enchère`);
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('auction_chat_error', (error) => {
+                log(`❌ Erreur de chat d'enchère: ${error.message}`, 'error');
+            });
+        }
+
+        function disconnectFromServer() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function joinAuctionChat() {
+            if (!socket || !isAuthenticated) {
+                log('❌ Vous devez être connecté et authentifié', 'error');
+                return;
+            }
+
+            const auctionId = document.getElementById('auctionId').value;
+            if (!auctionId) {
+                log('❌ Veuillez saisir un ID d\'enchère', 'error');
+                return;
+            }
+
+            log(`🔨 Tentative de rejoindre le chat de l'enchère: ${auctionId}`);
+            socket.emit('join_auction_chat', { auctionId: auctionId });
+        }
+
+        function leaveAuctionChat() {
+            if (!socket || !currentAuctionId) {
+                log('❌ Aucun chat d\'enchère à quitter', 'error');
+                return;
+            }
+
+            log(`🔨 Tentative de quitter le chat de l'enchère: ${currentAuctionId}`);
+            socket.emit('leave_auction_chat', { auctionId: currentAuctionId });
+        }
+
+        function getAuctionHistory() {
+            if (!socket || !currentAuctionId) {
+                log('❌ Vous devez être dans un chat d\'enchère', 'error');
+                return;
+            }
+
+            log(`📜 Récupération de l'historique de l'enchère: ${currentAuctionId}`);
+            socket.emit('get_auction_chat_history', { 
+                auctionId: currentAuctionId,
+                limit: 50,
+                offset: 0
+            });
+        }
+
+        function sendAuctionMessage() {
+            if (!socket || !isAuthenticated || !currentAuctionId) {
+                log('❌ Vous devez être connecté et dans un chat d\'enchère', 'error');
+                return;
+            }
+
+            const messageInput = document.getElementById('auctionMessageInput');
+            const text = messageInput.value.trim();
+
+            if (!text) {
+                log('❌ Le message ne peut pas être vide', 'error');
+                return;
+            }
+
+            log(`💬 Envoi du message: "${text}"`);
+            socket.emit('send_auction_message', {
+                auctionId: currentAuctionId,
+                text: text
+            });
+
+            messageInput.value = '';
+        }
+
+        function displayAuctionMessage(message) {
+            const messagesDiv = document.getElementById('auctionMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const time = new Date(message.timestamp || message.createdAt).toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    ${message.user.pseudo}
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-text">${message.message}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function displayAuctionMessages(messages, clear = false) {
+            const messagesDiv = document.getElementById('auctionMessages');
+            
+            if (clear) {
+                messagesDiv.innerHTML = '';
+            }
+            
+            messages.forEach(message => {
+                displayAuctionMessage(message);
+            });
+        }
+
+        function clearAuctionMessages() {
+            document.getElementById('auctionMessages').innerHTML = '';
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Gestion de la touche Entrée pour envoyer les messages
+        document.getElementById('auctionMessageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendAuctionMessage();
+            }
+        });
+
+        // Log initial
+        log('🚀 Client de test du chat d\'enchères initialisé');
+        log('💡 Connectez-vous d\'abord, puis rejoignez un chat d\'enchère');
+    </script>
+</body>
+</html>
