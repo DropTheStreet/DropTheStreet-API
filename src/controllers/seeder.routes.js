@@ -39,18 +39,6 @@ router.post('/seeder', async (req, res) => {
 
         console.log('Support seeder was created successfully');
 
-        //Statistic
-        const statisticSeederResponse = await fetch('http://localhost:3000/statistic/seeder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (!statisticSeederResponse.ok) {
-            console.error('Error during execution of statistic seeder');
-        }
-
-        console.log('Statistic seeder was created successfully');
-
         //Category
 
         const categorySeederResponse = await fetch('http://localhost:3000/category/seeder', {
@@ -274,6 +262,18 @@ router.post('/seeder', async (req, res) => {
         console.log('History auction seeder was created successfully');
 
         res.status(200).send({ message: 'All seeders was executed successfully' });
+
+        //Statistic
+        const statisticSeederResponse = await fetch('http://localhost:3000/statistic/seeder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!statisticSeederResponse.ok) {
+            console.error('Error during execution of statistic seeder');
+        }
+
+        console.log('Statistic seeder was created successfully');
 
         //Shopping cart
 

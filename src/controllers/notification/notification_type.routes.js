@@ -11,6 +11,9 @@ router.post('/seeder', async (req, res) => {
             { name: 'Message de support' },
             { name: 'Promotion' },
             { name: 'Paiement' },
+            { name: 'Drop' },
+            { name: 'Auction' },
+            { name: 'Panier' },
         ];
 
         for (let type of notificationTypesToCreate) {

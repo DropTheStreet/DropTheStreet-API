@@ -1,40 +1,82 @@
 const express = require('express');
 const router = express.Router();
 const { Statistic } = require('../../models/models/statistic/statistic.model');
+const {Product} = require("../../models/models/product/product.model");
+const {User} = require("../../models/models/user/user.model");
+const {Drop} = require("../../models/models/drop/drop.model");
+const {Auction} = require("../../models/models/auction/auction.model");
+const {Role} = require("../../models/models/user/role.model");
 
 router.post('/seeder', async (req, res) => {
     try {
-        const statisticsToCreate = [
-            { sold_quantity: 150, income: 3000 },
-            { sold_quantity: 200, income: 4000 },
-            { sold_quantity: 500, income: 10000 }
-        ];
+        const products = await Product.findAll();
+        const drops = await Drop.findAll();
+        const auctions = await Auction.findAll();
 
-        for (let stat of statisticsToCreate) {
-            const existingStat = await Statistic.findOne({ where: { sold_quantity: stat.sold_quantity, income: stat.income } });
-            if (existingStat) {
-                console.log(`Statistic with sold quantity "${stat.sold_quantity}" already exist.`);
-            } else {
-                await Statistic.create({
-                    sold_quantity: stat.sold_quantity,
-                    income: stat.income,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                });
-                console.log(`Statistic with sold quantity  "${stat.sold_quantity}" was created successfully`);
-            }
+        const sellerRole = await Role.findOne({ where: { name: 'Seller' } });
+
+        if (!sellerRole) {
+            return res.status(404).send({ message: 'Le rôle Vendor est introuvable.' });
         }
 
-        const statistics = await Statistic.findAll({
-            order: [['sold_quantity', 'ASC']],
-        });
+        const seller = await User.findOne({ where: { id_role: sellerRole.id_role } });
 
-        res.status(200).send(statistics);
+        if (!seller) {
+            return res.status(404).send({ message: 'Aucun utilisateur Seller trouvé.' });
+        }
+
+        const statisticToCreate = [
+            {
+                sold_quantity: 20,
+                id_vendor: seller.id_user,
+                id_product: products[0].id_product,
+                id_drop: drops.length > 0 ? drops[0].id_drop : null,
+            },
+            {
+                sold_quantity: 7,
+                id_vendor: seller.id_user,
+                id_product: products[1].id_product,
+                id_auction: auctions.length > 0 ? auctions[0].id_auction : null,
+            },
+            {
+                sold_quantity: 15,
+                id_vendor: seller.id_user,
+                id_product: products[2].id_product,
+                id_drop: drops.length > 1 ? drops[1].id_drop : null,
+            },
+            {
+                sold_quantity: 5,
+                id_vendor: seller.id_user,
+                id_product: products[1].id_product,
+                id_auction: auctions.length > 0 ? auctions[1].id_auction : null,
+            },
+            {
+                sold_quantity: 52,
+                id_vendor: seller.id_user,
+                id_product: products[2].id_product,
+                id_drop: drops.length > 1 ? drops[2].id_drop : null,
+            }
+        ];
+
+        const createdStatistic = [];
+
+        for (let stat of statisticToCreate) {
+            const created = await Statistic.create({
+                ...stat,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            console.log(`Statistic created with product ${stat.id_product}`);
+            createdStatistic.push(created);
+        }
+
+        res.status(200).send(createdStatistic);
     } catch (e) {
         console.error(e);
-        res.status(500).send({ message: 'Error during the statistic creation', error: e.message });
+        res.status(500).send({ message: 'Error during seeding statistic', error: e.message });
     }
 });
+
 
 router.get('/', async (req, res) => {
     try {

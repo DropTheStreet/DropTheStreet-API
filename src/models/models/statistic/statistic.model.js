@@ -12,10 +12,22 @@ exports.Statistic = sequelize.define('Statistic', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    income: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+    id_vendor: {
+        type: DataTypes.UUID,
+        allowNull: false
     },
+    id_product: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+    id_drop: {
+        type: DataTypes.UUID,
+        allowNull: true
+    },
+    id_auction: {
+        type: DataTypes.UUID,
+        allowNull: true
+    }
     //date -> created at
 }, {
     tableName: 'Statistic',

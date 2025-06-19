@@ -178,9 +178,6 @@ class WebServer {
         Brand.hasMany(Product, { foreignKey: 'id_brand' });
         Product.belongsTo(Brand, { foreignKey: 'id_brand', onDelete: 'CASCADE' });
 
-        Product.hasOne(Statistic, { foreignKey: 'id_product' });
-        Statistic.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
-
         // Relations liées aux drops
         Product.hasMany(Drop, { foreignKey: 'id_product' });
         Drop.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
@@ -191,6 +188,24 @@ class WebServer {
         // Relations liées au chat général
         User.hasMany(GeneralChat, { foreignKey: 'id_user', as: 'user' });
         GeneralChat.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
+
+        //Relations entre statistique et vendor, product, drop, auction
+
+        Product.hasMany(Statistic, { foreignKey: 'id_product' });
+        Statistic.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        User.hasMany(Statistic, { foreignKey: 'id_vendor' });
+        Statistic.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+
+        Product.hasMany(Statistic, { foreignKey: 'id_product' });
+        Statistic.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
+
+        Drop.hasMany(Statistic, { foreignKey: 'id_drop' });
+        Statistic.belongsTo(Drop, { foreignKey: 'id_drop', onDelete: 'SET NULL' });
+
+        Auction.hasMany(Statistic, { foreignKey: 'id_auction' });
+        Statistic.belongsTo(Auction, { foreignKey: 'id_auction', onDelete: 'SET NULL' });
+
 
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
@@ -341,7 +356,6 @@ class WebServer {
             console.log('📋 Niveau 3 - Tables de relations...');
             await ProductImage.sync({ force: false });
             await ProductFavorite.sync({ force: false });
-            await Statistic.sync({ force: false });
             await Drop.sync({ force: false });
             await Auction.sync({ force: false });
             await GeneralChat.sync({ force: false });
@@ -356,6 +370,7 @@ class WebServer {
             await HistoryAuction.sync({ force: false });
             await CartItem.sync({ force: false });
             await PaymentDetail.sync({ force: false });
+            await Statistic.sync({ force: false });
 
             console.log('✅ Toutes les tables créées avec succès dans le bon ordre !');
 
