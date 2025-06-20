@@ -87,7 +87,6 @@ class WebServer {
         User.belongsTo(Role, { foreignKey: 'id_role', as: 'role', onDelete: 'CASCADE' });
         Role.hasMany(User, { foreignKey: 'id_role', as: 'users' });
 
-
         // Relations liées aux enchères
         User.hasMany(Auction, { foreignKey: 'id_user' });
         Auction.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });

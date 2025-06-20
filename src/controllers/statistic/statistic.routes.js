@@ -6,6 +6,7 @@ const {User} = require("../../models/models/user/user.model");
 const {Drop} = require("../../models/models/drop/drop.model");
 const {Auction} = require("../../models/models/auction/auction.model");
 const {Role} = require("../../models/models/user/role.model");
+const StatisticRepository = require("../../models/repositories/statistic/statistic-repository");
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -86,6 +87,16 @@ router.get('/', async (req, res) => {
         res.status(200).send(statistics);
     } catch (e) {
         res.status(500).send({ message: 'Error during getting of getting statistics', error: e.message });
+    }
+});
+
+router.get('/:id_vendor', async (req, res) => {
+    try {
+        const { id_vendor } = req.params;
+        const items = await StatisticRepository.findStatisticBySellerId(id_vendor);
+        res.status(200).json(items);
+    } catch (e) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des statistiques par vendeur', error: e.message });
     }
 });
 

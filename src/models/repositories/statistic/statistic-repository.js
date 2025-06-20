@@ -1,4 +1,9 @@
 const { Statistic } = require('../../models/statistic/statistic.model.js');
+const {Drop} = require("../../models/drop/drop.model");
+const {Auction} = require("../../models/auction/auction.model");
+const {Product} = require("../../models/product/product.model");
+const {ProductImage} = require("../../models/product/product_image.model");
+const {Image} = require("../../models/product/image.model");
 
 class StatisticRepository {
     async create(statisticData) {
@@ -29,6 +34,28 @@ class StatisticRepository {
         await statistic.destroy();
         return true;
     }
+
+    async findStatisticBySellerId(id_vendor) {
+        return await Statistic.findAll({
+            where: { id_vendor },
+            attributes: ['id_statistic', 'sold_quantity', 'id_vendor', 'id_product', 'id_drop', 'id_auction'],
+            include: [
+                {
+                    model: Drop,
+                    attributes: ['price', 'is_premium']
+                },
+                {
+                    model: Auction,
+                    attributes: ['actual_price', 'initial_price']
+                },
+                {
+                    model: Product,
+                    attributes: ['name', 'description'],
+                }
+            ]
+        });
+    }
+
 }
 
 module.exports = new StatisticRepository();
