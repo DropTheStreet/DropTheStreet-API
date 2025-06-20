@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Enchères Temps Réel - DropTheStreet</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.error { background-color: #fff3cd; color: #856404; }
+        
+        .auction-container {
+            display: flex;
+            gap: 20px;
+        }
+        .auction-section {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .auction-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .auction-info h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        .price-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #d32f2f;
+            margin: 10px 0;
+        }
+        .time-remaining {
+            font-size: 1.1em;
+            color: #f57c00;
+            font-weight: bold;
+        }
+        
+        .bid-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .bid-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .bid-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1.1em;
+        }
+        .bid-input button {
+            padding: 10px 20px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .bid-input button:hover {
+            background-color: #b71c1c;
+        }
+        .bid-input button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .bid-history {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #fafafa;
+        }
+        .bid-item {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: white;
+            border-left: 3px solid #d32f2f;
+        }
+        .bid-item.own {
+            background-color: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+        .bid-header {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .bid-time {
+            font-size: 0.8em;
+            color: #666;
+            float: right;
+        }
+        .bid-amount {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #d32f2f;
+            margin-top: 5px;
+        }
+        
+        input, button, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .participants {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .logs {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fafafa;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        .notification.success { background-color: #4caf50; }
+        .notification.error { background-color: #f44336; }
+        .notification.warning { background-color: #ff9800; }
+        .notification.info { background-color: #2196f3; }
+    </style>
+</head>
+<body>
+    <h1>🔨 Test Enchères Temps Réel - DropTheStreet WebSocket</h1>
+    
+    <div class="notification" id="notification"></div>
+    
+    <div class="container">
+        <h2>Connexion</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>URL du serveur:</label>
+                <input type="text" id="serverUrl" value="http://localhost:3000" placeholder="http://localhost:3000">
+            </div>
+            <div class="form-group">
+                <label>Token JWT:</label>
+                <input type="text" id="jwtToken" value="test" placeholder="Votre token JWT">
+            </div>
+            <button onclick="connectToServer()">Se connecter</button>
+            <button onclick="disconnectFromServer()">Se déconnecter</button>
+        </div>
+        <div id="connectionStatus" class="status disconnected">Déconnecté</div>
+    </div>
+
+    <div class="container">
+        <h2>Gestion des Enchères</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>ID de l'enchère:</label>
+                <input type="text" id="auctionId" placeholder="UUID de l'enchère" value="test-auction-123">
+            </div>
+            <button onclick="joinAuction()">Rejoindre Enchère</button>
+            <button onclick="leaveAuction()">Quitter Enchère</button>
+            <button onclick="getAuctionDetails()">Détails Enchère</button>
+            <button onclick="getBidHistory()">Historique</button>
+        </div>
+    </div>
+
+    <div class="auction-container">
+        <div class="auction-section">
+            <h3>🔨 Enchère Active</h3>
+            <div class="auction-info">
+                <h4 id="auctionTitle">Aucune enchère sélectionnée</h4>
+                <div>ID: <span id="currentAuctionId">-</span></div>
+                <div>Propriétaire: <span id="auctionOwner">-</span></div>
+                <div class="price-display">Prix actuel: <span id="currentPrice">0</span>€</div>
+                <div class="time-remaining">Temps restant: <span id="timeRemaining">-</span></div>
+                <div class="participants">Participants: <span id="participantCount">0</span></div>
+            </div>
+            
+            <div class="bid-section">
+                <h4>Placer une enchère</h4>
+                <div>Prix minimum: <span id="minimumBid">0</span>€</div>
+                <div class="bid-input">
+                    <input type="number" id="bidAmount" placeholder="Montant en €" min="1" step="1">
+                    <button onclick="placeBid()" id="bidButton">Enchérir</button>
+                </div>
+            </div>
+            
+            <div id="auctionMessages" class="bid-history"></div>
+        </div>
+        
+        <div class="auction-section">
+            <h3>📜 Historique des Enchères</h3>
+            <div id="bidHistory" class="bid-history"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Logs</h2>
+        <div id="logs" class="logs"></div>
+        <button onclick="clearLogs()">Effacer les logs</button>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentAuctionId = null;
+        let isAuthenticated = false;
+        let currentUserId = null;
+        let timeRemainingInterval = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+        }
+
+        function connectToServer() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const token = document.getElementById('jwtToken').value;
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            log(`Connexion à ${serverUrl}...`);
+            socket = io(serverUrl, {
+                transports: ['polling', 'websocket'],
+                upgrade: true,
+                rememberUpgrade: false
+            });
+
+            // Événements de connexion
+            socket.on('connect', () => {
+                log('✅ Connecté au serveur WebSocket');
+                updateConnectionStatus('connected', 'Connecté');
+                
+                if (token) {
+                    socket.emit('authenticate', { token: token });
+                }
+            });
+
+            socket.on('disconnect', () => {
+                log('❌ Déconnecté du serveur');
+                updateConnectionStatus('disconnected', 'Déconnecté');
+                isAuthenticated = false;
+                clearInterval(timeRemainingInterval);
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Erreur de connexion: ${error.message}`);
+                updateConnectionStatus('error', 'Erreur de connexion');
+            });
+
+            // Événements d'authentification
+            socket.on('authenticated', (data) => {
+                log(`✅ Authentifié: ${data.message}`);
+                isAuthenticated = true;
+                currentUserId = data.user?.id_user;
+            });
+
+            socket.on('authentication_error', (error) => {
+                log(`❌ Erreur d'authentification: ${error.message}`);
+                isAuthenticated = false;
+            });
+
+            // Événements d'enchères
+            socket.on('auction_joined', (data) => {
+                log(`✅ Enchère rejointe: ${data.auctionId}`);
+                currentAuctionId = data.auctionId;
+                updateAuctionDisplay(data.auctionDetails);
+                showNotification('Enchère rejointe avec succès', 'success');
+            });
+
+            socket.on('auction_room_joined', (data) => {
+                log(`🏠 Salle d'enchère rejointe: ${data.auctionId}`);
+                currentAuctionId = data.auctionId;
+                showNotification('Salle d\'enchère rejointe avec succès', 'success');
+            });
+
+            socket.on('auction_left', (data) => {
+                log(`✅ Enchère quittée: ${data.auctionId}`);
+                currentAuctionId = null;
+                clearAuctionDisplay();
+                showNotification('Enchère quittée', 'info');
+            });
+
+            socket.on('new_bid', (bidData) => {
+                log(`💰 Nouvelle enchère: ${bidData.amount}€ par ${bidData.user.pseudo}`);
+                displayNewBid(bidData);
+                updateCurrentPrice(bidData.amount);
+                showNotification(`Nouvelle enchère: ${bidData.amount}€`, 'info');
+            });
+
+            socket.on('bid_success', (data) => {
+                log(`✅ Votre enchère placée: ${data.amount}€`);
+                console.log('✅ Enchère placée avec succès:', data);
+                console.log('Montant:', data.amount);
+                console.log('Données d\'enchère complètes:', data.auction);
+
+                // Mettre à jour l'affichage avec les données complètes
+                if (data.auction) {
+                    updateAuctionDisplay(data.auction);
+                    updateCurrentPrice(data.auction.actual_price);
+                }
+
+                showNotification(`Enchère placée: ${data.amount}€`, 'success');
+            });
+
+            socket.on('bid_placed', (data) => {
+                log(`✅ Enchère confirmée: ${data.amount}€`);
+                showNotification(`Enchère confirmée: ${data.amount}€`, 'success');
+            });
+
+            socket.on('bid_outbid', (data) => {
+                log(`⚠️ Enchère dépassée: ${data.message}`);
+                showNotification(`Enchère dépassée: ${data.message}`, 'warning');
+                if (data.currentPrice) {
+                    updateCurrentPrice(data.currentPrice);
+                }
+            });
+
+            socket.on('bid_error', (error) => {
+                log(`❌ Erreur d'enchère: ${error.message}`);
+                showNotification(`Erreur: ${error.message}`, 'error');
+            });
+
+            socket.on('auction_updated', (auctionData) => {
+                log(`🔄 Enchère mise à jour - Prix: ${auctionData.actual_price}€`);
+                console.log('🔄 Données d\'enchère mises à jour:', auctionData);
+                updateAuctionDisplay(auctionData);
+
+                // Mettre à jour le prix actuel
+                if (auctionData.actual_price) {
+                    updateCurrentPrice(auctionData.actual_price);
+                }
+            });
+
+            socket.on('auction_extended', (data) => {
+                log(`⏰ Enchère prolongée: ${data.message}`);
+                showNotification(data.message, 'warning');
+            });
+
+            socket.on('auction_ending_soon', (data) => {
+                log(`⚠️ Enchère se termine bientôt: ${data.message}`);
+                showNotification(data.message, 'warning');
+            });
+
+            socket.on('auction_ended', (data) => {
+                log(`🏁 Enchère terminée: ${data.message}`);
+                showNotification(data.message, 'info');
+                clearInterval(timeRemainingInterval);
+            });
+
+            socket.on('bid_history', (data) => {
+                log(`📜 Historique reçu: ${data.bids.length} enchères`);
+                displayBidHistory(data.bids);
+            });
+
+            socket.on('auction_error', (error) => {
+                log(`❌ Erreur d'enchère: ${error.message}`);
+                showNotification(`Erreur: ${error.message}`, 'error');
+            });
+        }
+
+        function disconnectFromServer() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            clearInterval(timeRemainingInterval);
+        }
+
+        function joinAuction() {
+            if (!socket || !isAuthenticated) {
+                showNotification('Vous devez être connecté et authentifié', 'error');
+                return;
+            }
+
+            const auctionId = document.getElementById('auctionId').value;
+            if (!auctionId) {
+                showNotification('Veuillez saisir un ID d\'enchère', 'error');
+                return;
+            }
+
+            log(`🔨 Tentative de rejoindre l'enchère: ${auctionId}`);
+
+            // Utiliser les nouveaux événements pour une meilleure synchronisation
+            socket.emit('join_auction_room', { auctionId: auctionId });
+            socket.emit('subscribe_to_auction_updates', { auctionId: auctionId });
+
+            // Garder aussi l'ancien événement pour compatibilité
+            socket.emit('join_auction', { auctionId: auctionId });
+        }
+
+        function leaveAuction() {
+            if (!socket || !currentAuctionId) {
+                showNotification('Aucune enchère à quitter', 'error');
+                return;
+            }
+
+            log(`🔨 Tentative de quitter l'enchère: ${currentAuctionId}`);
+            socket.emit('leave_auction', { auctionId: currentAuctionId });
+        }
+
+        function placeBid() {
+            if (!socket || !isAuthenticated || !currentAuctionId) {
+                showNotification('Vous devez être dans une enchère', 'error');
+                return;
+            }
+
+            const bidAmount = parseInt(document.getElementById('bidAmount').value);
+            if (!bidAmount || bidAmount <= 0) {
+                showNotification('Veuillez saisir un montant valide', 'error');
+                return;
+            }
+
+            log(`💰 Placement d'enchère: ${bidAmount}€`);
+            socket.emit('place_bid', {
+                auctionId: currentAuctionId,
+                bidAmount: bidAmount
+            });
+
+            document.getElementById('bidAmount').value = '';
+        }
+
+        function getBidHistory() {
+            if (!socket || !currentAuctionId) {
+                showNotification('Vous devez être dans une enchère', 'error');
+                return;
+            }
+
+            log(`📜 Récupération de l'historique: ${currentAuctionId}`);
+            socket.emit('get_bid_history', {
+                auctionId: currentAuctionId,
+                limit: 50,
+                offset: 0
+            });
+        }
+
+        function updateAuctionDisplay(auctionData) {
+            if (!auctionData) return;
+
+            document.getElementById('currentAuctionId').textContent = auctionData.id_auction || '-';
+            document.getElementById('auctionTitle').textContent = auctionData.Product?.name || auctionData.product?.name || 'Enchère';
+            document.getElementById('auctionOwner').textContent = auctionData.owner?.pseudo || '-';
+            document.getElementById('currentPrice').textContent = auctionData.actual_price || auctionData.initial_price || 0;
+            document.getElementById('participantCount').textContent = auctionData.participantCount || auctionData.connectedParticipants || 0;
+
+            const minimumBid = (auctionData.actual_price || auctionData.initial_price || 0) + 1;
+            document.getElementById('minimumBid').textContent = minimumBid;
+            document.getElementById('bidAmount').min = minimumBid;
+
+            // Afficher le dernier enchérisseur
+            if (auctionData.last_bidder) {
+                const isCurrentUser = auctionData.last_bidder.id_user === currentUserId;
+                const bidStatus = isCurrentUser ?
+                    '🏆 Vous êtes en tête !' :
+                    `🔨 En tête: ${auctionData.last_bidder.pseudo}`;
+
+                // Créer ou mettre à jour l'affichage du statut
+                let statusElement = document.getElementById('bidStatus');
+                if (!statusElement) {
+                    statusElement = document.createElement('div');
+                    statusElement.id = 'bidStatus';
+                    statusElement.style.fontWeight = 'bold';
+                    statusElement.style.color = isCurrentUser ? '#4caf50' : '#ff9800';
+                    statusElement.style.marginTop = '10px';
+                    document.querySelector('.auction-info').appendChild(statusElement);
+                }
+                statusElement.textContent = bidStatus;
+                statusElement.style.color = isCurrentUser ? '#4caf50' : '#ff9800';
+
+                // Désactiver le bouton d'enchère si l'utilisateur est déjà en tête
+                const bidButton = document.getElementById('bidButton');
+                if (bidButton) {
+                    bidButton.disabled = isCurrentUser;
+                    bidButton.textContent = isCurrentUser ? 'Vous êtes en tête' : 'Enchérir';
+                }
+            }
+
+            // Mettre à jour le temps restant
+            if (auctionData.timeRemaining !== undefined) {
+                updateTimeRemaining(auctionData.timeRemaining);
+            }
+
+            // Log des données reçues pour debug
+            console.log('🔄 Affichage mis à jour avec:', {
+                id_auction: auctionData.id_auction,
+                actual_price: auctionData.actual_price,
+                last_bidder: auctionData.last_bidder,
+                Product: auctionData.Product
+            });
+        }
+
+        function updateCurrentPrice(price) {
+            document.getElementById('currentPrice').textContent = price;
+            const minimumBid = price + 1;
+            document.getElementById('minimumBid').textContent = minimumBid;
+            document.getElementById('bidAmount').min = minimumBid;
+        }
+
+        function updateTimeRemaining(timeRemaining) {
+            clearInterval(timeRemainingInterval);
+            
+            let remaining = timeRemaining;
+            
+            const updateDisplay = () => {
+                if (remaining <= 0) {
+                    document.getElementById('timeRemaining').textContent = 'Terminée';
+                    clearInterval(timeRemainingInterval);
+                    return;
+                }
+                
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+                
+                document.getElementById('timeRemaining').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                remaining -= 1000;
+            };
+            
+            updateDisplay();
+            timeRemainingInterval = setInterval(updateDisplay, 1000);
+        }
+
+        function displayNewBid(bidData) {
+            const messagesDiv = document.getElementById('auctionMessages');
+            const bidDiv = document.createElement('div');
+            bidDiv.className = `bid-item ${bidData.user.id_user === currentUserId ? 'own' : ''}`;
+            
+            const time = new Date(bidData.timestamp).toLocaleTimeString();
+            
+            bidDiv.innerHTML = `
+                <div class="bid-header">
+                    ${bidData.user.pseudo}
+                    <span class="bid-time">${time}</span>
+                </div>
+                <div class="bid-amount">${bidData.amount}€</div>
+            `;
+            
+            messagesDiv.appendChild(bidDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function displayBidHistory(bids) {
+            const historyDiv = document.getElementById('bidHistory');
+            historyDiv.innerHTML = '';
+            
+            bids.forEach(bid => {
+                const bidDiv = document.createElement('div');
+                bidDiv.className = `bid-item ${bid.user.id_user === currentUserId ? 'own' : ''}`;
+                
+                const time = new Date(bid.timestamp).toLocaleTimeString();
+                
+                bidDiv.innerHTML = `
+                    <div class="bid-header">
+                        ${bid.user.pseudo}
+                        <span class="bid-time">${time}</span>
+                    </div>
+                    <div class="bid-amount">${bid.amount}€</div>
+                `;
+                
+                historyDiv.appendChild(bidDiv);
+            });
+        }
+
+        function clearAuctionDisplay() {
+            document.getElementById('currentAuctionId').textContent = '-';
+            document.getElementById('auctionTitle').textContent = 'Aucune enchère sélectionnée';
+            document.getElementById('auctionOwner').textContent = '-';
+            document.getElementById('currentPrice').textContent = '0';
+            document.getElementById('timeRemaining').textContent = '-';
+            document.getElementById('participantCount').textContent = '0';
+            document.getElementById('minimumBid').textContent = '0';
+            document.getElementById('auctionMessages').innerHTML = '';
+            document.getElementById('bidHistory').innerHTML = '';
+            clearInterval(timeRemainingInterval);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Gestion de la touche Entrée pour placer une enchère
+        document.getElementById('bidAmount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                placeBid();
+            }
+        });
+
+        // Log initial
+        log('🚀 Client de test des enchères temps réel initialisé');
+        log('💡 Connectez-vous d\'abord, puis rejoignez une enchère');
+    </script>
+</body>
+</html>

@@ -179,6 +179,7 @@ class AuctionService {
 
             // Vérifier que l'utilisateur n'est pas le propriétaire
             if (auction.id_user === userId) {
+
                 return { valid: false, message: 'Vous ne pouvez pas enchérir sur votre propre produit' };
             }
 

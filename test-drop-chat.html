@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat de Drops - DropTheStreet</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.connected { background-color: #d4edda; color: #155724; }
+        .status.disconnected { background-color: #f8d7da; color: #721c24; }
+        .status.error { background-color: #fff3cd; color: #856404; }
+        
+        .chat-container {
+            display: flex;
+            gap: 20px;
+        }
+        .chat-section {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: white;
+            border-left: 3px solid #28a745;
+        }
+        .message.own {
+            background-color: #e8f5e8;
+            border-left-color: #28a745;
+        }
+        .message-header {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #666;
+            float: right;
+        }
+        .message-text {
+            margin-top: 5px;
+            color: #555;
+        }
+        
+        input, button, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .drop-info {
+            background-color: #e8f5e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .participants {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎁 Test Chat de Drops - DropTheStreet WebSocket</h1>
+    
+    <div class="container">
+        <h2>Connexion</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>URL du serveur:</label>
+                <input type="text" id="serverUrl" value="http://localhost:3000" placeholder="http://localhost:3000">
+            </div>
+            <div class="form-group">
+                <label>Token JWT:</label>
+                <input type="text" id="jwtToken" value="test" placeholder="Votre token JWT">
+            </div>
+            <button onclick="connectToServer()">Se connecter</button>
+            <button onclick="disconnectFromServer()">Se déconnecter</button>
+        </div>
+        <div id="connectionStatus" class="status disconnected">Déconnecté</div>
+    </div>
+
+    <div class="container">
+        <h2>Gestion des Drops</h2>
+        <div class="controls">
+            <div class="form-group">
+                <label>ID du drop:</label>
+                <input type="text" id="dropId" placeholder="UUID du drop" value="test-drop-123">
+            </div>
+            <button onclick="joinDropChat()">Rejoindre Chat Drop</button>
+            <button onclick="leaveDropChat()">Quitter Chat Drop</button>
+            <button onclick="getDropHistory()">Récupérer Historique</button>
+            <button onclick="getDropStats()">Statistiques</button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-section">
+            <h3>💬 Chat de Drop</h3>
+            <div class="drop-info">
+                <strong>Drop:</strong> <span id="currentDropId">Aucun</span>
+                <div class="participants">Participants: <span id="participantCount">0</span></div>
+            </div>
+            <div id="dropMessages" class="messages"></div>
+            <div class="controls">
+                <input type="text" id="dropMessageInput" placeholder="Tapez votre message..." style="flex: 1;">
+                <button onclick="sendDropMessage()">Envoyer</button>
+            </div>
+            <div id="dropStats" class="stats" style="display: none;">
+                <h4>Statistiques du Chat</h4>
+                <div>Messages totaux: <span id="totalMessages">0</span></div>
+                <div>Messages aujourd'hui: <span id="todayMessages">0</span></div>
+                <div>Utilisateurs uniques: <span id="uniqueUsers">0</span></div>
+                <div>Participants en ligne: <span id="onlineParticipants">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Logs</h2>
+        <div id="logs" class="messages" style="height: 200px;"></div>
+        <button onclick="clearLogs()">Effacer les logs</button>
+    </div>
+
+    <script>
+        let socket = null;
+        let currentDropId = null;
+        let isAuthenticated = false;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `message ${type}`;
+            logEntry.innerHTML = `<span class="message-time">${timestamp}</span><div class="message-text">${message}</div>`;
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${status}`;
+            statusDiv.textContent = message;
+        }
+
+        function connectToServer() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const token = document.getElementById('jwtToken').value;
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            log(`Connexion à ${serverUrl}...`);
+            socket = io(serverUrl, {
+                transports: ['polling', 'websocket'],
+                upgrade: true,
+                rememberUpgrade: false
+            });
+
+            // Événements de connexion
+            socket.on('connect', () => {
+                log('✅ Connecté au serveur WebSocket');
+                updateConnectionStatus('connected', 'Connecté');
+                
+                // Authentification automatique
+                if (token) {
+                    socket.emit('authenticate', { token: token });
+                }
+            });
+
+            socket.on('disconnect', () => {
+                log('❌ Déconnecté du serveur');
+                updateConnectionStatus('disconnected', 'Déconnecté');
+                isAuthenticated = false;
+            });
+
+            socket.on('connect_error', (error) => {
+                log(`❌ Erreur de connexion: ${error.message}`, 'error');
+                updateConnectionStatus('error', 'Erreur de connexion');
+            });
+
+            // Événements d'authentification
+            socket.on('authenticated', (data) => {
+                log(`✅ Authentifié: ${data.message}`);
+                isAuthenticated = true;
+            });
+
+            socket.on('authentication_error', (error) => {
+                log(`❌ Erreur d'authentification: ${error.message}`, 'error');
+                isAuthenticated = false;
+            });
+
+            // Événements de chat de drops
+            socket.on('drop_chat_joined', (data) => {
+                log(`✅ Chat de drop rejoint: ${data.dropId}`);
+                currentDropId = data.dropId;
+                document.getElementById('currentDropId').textContent = data.dropId;
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('drop_chat_left', (data) => {
+                log(`✅ Chat de drop quitté: ${data.dropId}`);
+                currentDropId = null;
+                document.getElementById('currentDropId').textContent = 'Aucun';
+                document.getElementById('participantCount').textContent = '0';
+                clearDropMessages();
+                hideStats();
+            });
+
+            socket.on('drop_chat_history', (data) => {
+                log(`📜 Historique reçu: ${data.messages.length} messages`);
+                displayDropMessages(data.messages, true);
+            });
+
+            socket.on('new_drop_message', (message) => {
+                log(`💬 Nouveau message de drop de ${message.user.pseudo}`);
+                displayDropMessage(message);
+            });
+
+            socket.on('user_joined_drop_chat', (data) => {
+                log(`👤 ${data.pseudo} a rejoint le chat du drop`);
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('user_left_drop_chat', (data) => {
+                log(`👤 Un utilisateur a quitté le chat du drop`);
+                document.getElementById('participantCount').textContent = data.participantCount || 0;
+            });
+
+            socket.on('drop_chat_stats', (data) => {
+                log(`📊 Statistiques reçues pour le drop ${data.dropId}`);
+                displayStats(data);
+            });
+
+            socket.on('drop_chat_error', (error) => {
+                log(`❌ Erreur de chat de drop: ${error.message}`, 'error');
+            });
+        }
+
+        function disconnectFromServer() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function joinDropChat() {
+            if (!socket || !isAuthenticated) {
+                log('❌ Vous devez être connecté et authentifié', 'error');
+                return;
+            }
+
+            const dropId = document.getElementById('dropId').value;
+            if (!dropId) {
+                log('❌ Veuillez saisir un ID de drop', 'error');
+                return;
+            }
+
+            log(`🎁 Tentative de rejoindre le chat du drop: ${dropId}`);
+            socket.emit('join_drop_chat', { dropId: dropId });
+        }
+
+        function leaveDropChat() {
+            if (!socket || !currentDropId) {
+                log('❌ Aucun chat de drop à quitter', 'error');
+                return;
+            }
+
+            log(`🎁 Tentative de quitter le chat du drop: ${currentDropId}`);
+            socket.emit('leave_drop_chat', { dropId: currentDropId });
+        }
+
+        function getDropHistory() {
+            if (!socket || !currentDropId) {
+                log('❌ Vous devez être dans un chat de drop', 'error');
+                return;
+            }
+
+            log(`📜 Récupération de l'historique du drop: ${currentDropId}`);
+            socket.emit('get_drop_chat_history', { 
+                dropId: currentDropId,
+                limit: 50,
+                offset: 0
+            });
+        }
+
+        function getDropStats() {
+            if (!socket || !currentDropId) {
+                log('❌ Vous devez être dans un chat de drop', 'error');
+                return;
+            }
+
+            log(`📊 Récupération des statistiques du drop: ${currentDropId}`);
+            socket.emit('get_drop_chat_stats', { dropId: currentDropId });
+        }
+
+        function sendDropMessage() {
+            if (!socket || !isAuthenticated || !currentDropId) {
+                log('❌ Vous devez être connecté et dans un chat de drop', 'error');
+                return;
+            }
+
+            const messageInput = document.getElementById('dropMessageInput');
+            const text = messageInput.value.trim();
+
+            if (!text) {
+                log('❌ Le message ne peut pas être vide', 'error');
+                return;
+            }
+
+            log(`💬 Envoi du message: "${text}"`);
+            socket.emit('send_drop_message', {
+                dropId: currentDropId,
+                text: text
+            });
+
+            messageInput.value = '';
+        }
+
+        function displayDropMessage(message) {
+            const messagesDiv = document.getElementById('dropMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const time = new Date(message.timestamp || message.createdAt).toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    ${message.user.pseudo}
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-text">${message.message}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function displayDropMessages(messages, clear = false) {
+            const messagesDiv = document.getElementById('dropMessages');
+            
+            if (clear) {
+                messagesDiv.innerHTML = '';
+            }
+            
+            messages.forEach(message => {
+                displayDropMessage(message);
+            });
+        }
+
+        function displayStats(stats) {
+            document.getElementById('totalMessages').textContent = stats.totalMessages || 0;
+            document.getElementById('todayMessages').textContent = stats.todayMessages || 0;
+            document.getElementById('uniqueUsers').textContent = stats.uniqueUsers || 0;
+            document.getElementById('onlineParticipants').textContent = stats.onlineParticipants || 0;
+            document.getElementById('dropStats').style.display = 'block';
+        }
+
+        function hideStats() {
+            document.getElementById('dropStats').style.display = 'none';
+        }
+
+        function clearDropMessages() {
+            document.getElementById('dropMessages').innerHTML = '';
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        // Gestion de la touche Entrée pour envoyer les messages
+        document.getElementById('dropMessageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendDropMessage();
+            }
+        });
+
+        // Log initial
+        log('🚀 Client de test du chat de drops initialisé');
+        log('💡 Connectez-vous d\'abord, puis rejoignez un chat de drop');
+    </script>
+</body>
+</html>

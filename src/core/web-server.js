@@ -88,8 +88,8 @@ class WebServer {
         Role.hasMany(User, { foreignKey: 'id_role', as: 'users' });
 
         // Relations liées aux enchères
-        User.hasMany(Auction, { foreignKey: 'id_user' });
-        Auction.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+        User.hasMany(Auction, { foreignKey: 'id_user', as: 'ownedAuctions' });
+        Auction.belongsTo(User, { foreignKey: 'id_user', as: 'owner', onDelete: 'CASCADE' });
 
         Product.hasMany(Auction, { foreignKey: 'id_product' });
         Auction.belongsTo(Product, { foreignKey: 'id_product', onDelete: 'CASCADE' });
@@ -97,8 +97,8 @@ class WebServer {
         Auction.hasMany(HistoryAuction, { foreignKey: 'id_auction' });
         HistoryAuction.belongsTo(Auction, { foreignKey: 'id_auction', onDelete: 'CASCADE' });
 
-        User.hasMany(HistoryAuction, { foreignKey: 'id_user' });
-        HistoryAuction.belongsTo(User, { foreignKey: 'id_user', onDelete: 'CASCADE' });
+        User.hasMany(HistoryAuction, { foreignKey: 'id_user', as: 'bids' });
+        HistoryAuction.belongsTo(User, { foreignKey: 'id_user', as: 'User', onDelete: 'CASCADE' });
 
         // Relations liées aux paiements
         User.hasMany(Payment, { foreignKey: 'id_user' });
@@ -188,6 +188,20 @@ class WebServer {
         User.hasMany(GeneralChat, { foreignKey: 'id_user', as: 'user' });
         GeneralChat.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
 
+        // Relations liées au chat d'enchères
+        const { AuctionMessage } = require('../models/models/auction/auction_message.model');
+        User.hasMany(AuctionMessage, { foreignKey: 'id_user', as: 'auctionMessages' });
+        AuctionMessage.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
+        Auction.hasMany(AuctionMessage, { foreignKey: 'id_auction', as: 'chatMessages' });
+        AuctionMessage.belongsTo(Auction, { foreignKey: 'id_auction', as: 'auction', onDelete: 'CASCADE' });
+
+        // Relations liées au chat de drops
+        const { DropMessage } = require('../models/models/drop/drop_message.model');
+        User.hasMany(DropMessage, { foreignKey: 'id_user', as: 'dropMessages' });
+        DropMessage.belongsTo(User, { foreignKey: 'id_user', as: 'user', onDelete: 'CASCADE' });
+        Drop.hasMany(DropMessage, { foreignKey: 'id_drop', as: 'chatMessages' });
+        DropMessage.belongsTo(Drop, { foreignKey: 'id_drop', as: 'drop', onDelete: 'CASCADE' });
+
         //Relations entre statistique et vendor, product, drop, auction
 
         Product.hasMany(Statistic, { foreignKey: 'id_product' });
@@ -234,12 +248,15 @@ class WebServer {
         // Initialiser le gestionnaire de WebSockets
         this.socketHandler = new SocketHandler(this.io);
 
-        // Initialiser le service d'enchères
-        this.auctionService = new AuctionService();
-        this.auctionService.setSocketHandler(this.socketHandler);
+        // Initialiser le service d'enchères temps réel
+        const AuctionRealtimeService = require('../services/auction-realtime.service');
+        this.auctionRealtimeService = new AuctionRealtimeService(this.io);
+
+        // Configurer le service dans le contrôleur d'enchères
+        this.socketHandler.auctionSocketController.auctionService = this.auctionRealtimeService;
 
         // Démarrer le monitoring des enchères
-        this.auctionService.startAuctionMonitoring();
+        this.auctionRealtimeService.startAuctionMonitoring();
 
         this.server.listen(this.port, () => {
             console.log(`🚀 Serveur démarré sur le port ${this.port}`);
@@ -370,6 +387,14 @@ class WebServer {
             await CartItem.sync({ force: false });
             await PaymentDetail.sync({ force: false });
             await Statistic.sync({ force: false });
+
+            // Ajouter AuctionMessage après les autres tables d'enchères
+            const { AuctionMessage } = require('../models/models/auction/auction_message.model');
+            await AuctionMessage.sync({ force: false });
+
+            // Ajouter DropMessage après les autres tables de drops
+            const { DropMessage } = require('../models/models/drop/drop_message.model');
+            await DropMessage.sync({ force: false });
 
             console.log('✅ Toutes les tables créées avec succès dans le bon ordre !');
 
