@@ -25,6 +25,15 @@ exports.Notification = sequelize.define('Notification', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    is_sent: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    sendAt: {
+        type: DataTypes.DATE,
+        allowNull: false
+    }
     //date -> created at
 }, {
     tableName: 'Notification',

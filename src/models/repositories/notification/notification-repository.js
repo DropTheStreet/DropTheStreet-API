@@ -33,7 +33,7 @@ class NotificationRepository {
 
     async findByUserId(id_user) {
         return await Notification.findAll({
-            where: { id_user },
+            where: { id_user, is_sent: true },
             include: [
                 {
                     model: NotificationType,

@@ -57,6 +57,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const SocketHandler = require('./socket-handler');
 const AuctionService = require('../services/auction.service');
+const NotificationCronService = require("../jobs/notification-job");
 
 class WebServer {
     app = undefined;
@@ -65,6 +66,7 @@ class WebServer {
     io = undefined;
     socketHandler = undefined;
     auctionService = undefined;
+    notificationCronService = undefined;
 
     constructor() {
         this.app = express();
@@ -220,6 +222,7 @@ class WebServer {
         Statistic.belongsTo(Auction, { foreignKey: 'id_auction', onDelete: 'SET NULL' });
 
 
+        this.notificationCronService = new NotificationCronService();
         initializeConfigMiddlewares(this.app);
         this._initializeRoutes();
         initializeErrorMiddlwares(this.app);
@@ -258,15 +261,25 @@ class WebServer {
         // Démarrer le monitoring des enchères
         this.auctionRealtimeService.startAuctionMonitoring();
 
+        //CRON notifications
+        this.notificationCronService.startCronNotification();
+
+
         this.server.listen(this.port, () => {
             console.log(`🚀 Serveur démarré sur le port ${this.port}`);
             console.log(`📡 WebSockets activés avec CORS`);
+            console.log(`🔔 Cron des notifications activé`);
             console.log(`🔨 Environnement: ${process.env.NODE_ENV}`);
         });
     }
 
     stop() {
         console.log('🛑 Arrêt du serveur...');
+
+        // Arrêter le cron des notifications
+        if (this.notificationCronService) {
+            this.notificationCronService.stop();
+        }
 
         // Nettoyer les services
         if (this.auctionService) {
