@@ -254,7 +254,7 @@ router.put('/update/:id', async (req, res) => {
             name: product_updated.name,
             brand: brandName,
             category: categoryName,
-            image: imageBase64 || "/placeholder.png",
+            image: imageBase64 || "/placeholder.svg",
             price: product_updated.price,
             description: product_updated.description
         };

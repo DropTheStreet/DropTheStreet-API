@@ -54,7 +54,7 @@ class HistoryAuctionRepository {
                     include: [
                         {
                             model: Product,
-                            attributes: ['id_product', 'name', 'price']
+                            attributes: ['id_product', 'name']
                         }
                     ]
                 }

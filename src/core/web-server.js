@@ -251,25 +251,27 @@ class WebServer {
         // Initialiser le gestionnaire de WebSockets
         this.socketHandler = new SocketHandler(this.io);
 
-        // Initialiser le service d'enchères temps réel
-        const AuctionRealtimeService = require('../services/auction-realtime.service');
-        this.auctionRealtimeService = new AuctionRealtimeService(this.io);
+        // Initialiser les jobs d'enchères
+        const AuctionMonitorJob = require('../jobs/auction-monitor.job');
+        const PaymentReminderJob = require('../jobs/payment-reminder.job');
 
-        // Configurer le service dans le contrôleur d'enchères
-        this.socketHandler.auctionSocketController.auctionService = this.auctionRealtimeService;
-
-        // Démarrer le monitoring des enchères
-        this.auctionRealtimeService.startAuctionMonitoring();
+        this.auctionMonitorJob = new AuctionMonitorJob(this.io);
+        this.paymentReminderJob = new PaymentReminderJob(this.io);
 
         //CRON notifications
         this.notificationCronService.startCronNotification();
 
 
         this.server.listen(this.port, () => {
+            // Démarrer les jobs d'enchères
+            this.auctionMonitorJob.start();
+            this.paymentReminderJob.start();
+
             console.log(`🚀 Serveur démarré sur le port ${this.port}`);
             console.log(`📡 WebSockets activés avec CORS`);
             console.log(`🔔 Cron des notifications activé`);
             console.log(`🔨 Environnement: ${process.env.NODE_ENV}`);
+            console.log(`⏰ Jobs d'enchères démarrés`);
         });
     }
 
