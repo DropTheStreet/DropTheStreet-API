@@ -3,6 +3,8 @@ const {Product} = require("../../models/product/product.model");
 const {Op} = require("sequelize");
 const {Category} = require("../../models/product/category.model");
 const {Brand} = require("../../models/product/brand.model");
+const {ProductImage} = require("../../models/product/product_image.model");
+const {Image} = require("../../models/product/image.model");
 
 class DropRepository {
     async create(dropData) {
@@ -102,6 +104,12 @@ class DropRepository {
                         {
                             model: Brand,
                             attributes: ['name']
+                        },
+                        {
+                            model: ProductImage,
+                            include: [
+                                { model: Image, attributes: ['image'] }
+                            ]
                         }
                     ]
                 },
