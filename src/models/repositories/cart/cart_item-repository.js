@@ -69,6 +69,64 @@ class CartItemRepository {
     }
 
 
+    /**
+     * Vide le panier d'un utilisateur
+     * @param {string} userId - ID de l'utilisateur
+     * @returns {Promise<number>} - Nombre d'éléments supprimés
+     */
+    static async clearUserCart(userId) {
+        try {
+            const deletedCount = await CartItem.destroy({
+                where: {
+                    id_user: userId
+                }
+            });
+
+            console.log(`${deletedCount} éléments supprimés du panier de l'utilisateur ${userId}`);
+            return deletedCount;
+        } catch (error) {
+            console.error('Erreur lors de la suppression du panier:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Vérifie si un utilisateur a des éléments dans son panier
+     * @param {string} userId - ID de l'utilisateur
+     * @returns {Promise<boolean>} - True si le panier contient des éléments
+     */
+    static async hasCartItems(userId) {
+        try {
+            const count = await CartItem.count({
+                where: {
+                    id_user: userId
+                }
+            });
+            return count > 0;
+        } catch (error) {
+            console.error('Erreur lors de la vérification du panier:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Obtient le nombre total d'éléments dans le panier d'un utilisateur
+     * @param {string} userId - ID de l'utilisateur
+     * @returns {Promise<number>} - Nombre d'éléments dans le panier
+     */
+    static async getCartItemCount(userId) {
+        try {
+            const count = await CartItem.count({
+                where: {
+                    id_user: userId
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Erreur lors du comptage des éléments du panier:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new CartItemRepository();

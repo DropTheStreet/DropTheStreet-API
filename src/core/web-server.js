@@ -2,6 +2,7 @@ const express = require('express');
 const allRoutes = require('../controllers/seeder.routes.js');
 const userRoutes = require('../controllers/user/user.routes');
 const supportRoutes = require('../controllers/support/support.routes');
+const stripeRoutes = require('../controllers/stripe/stripe.routes.js');
 const roleRoutes = require('../controllers/user/role.routes');
 const statisticRoutes = require('../controllers/statistic/statistic.routes');
 const productRoutes = require('../controllers/product/product.routes');
@@ -328,6 +329,7 @@ class WebServer {
         this.app.use('/history-auction', historyAuctionRoutes.initializeRoutes());
         this.app.use('/chat', chatRoutes.initializeRoutes());
         this.app.use('/shopping-cart', cartItemRoutes.initializeRoutes());
+        this.app.use('/stripe', stripeRoutes.initializeRoutes());
 
         // Route pour les statistiques WebSocket
         this.app.get('/socket/stats', async (req, res) => {
