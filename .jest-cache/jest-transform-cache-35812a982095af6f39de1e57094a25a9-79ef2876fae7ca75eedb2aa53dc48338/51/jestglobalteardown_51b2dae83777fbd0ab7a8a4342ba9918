@@ -1,0 +1,10 @@
+9fb5f7703508ec95f11f68e07676a732
+// Teardown global pour Jest - exécuté une seule fois après tous les tests
+module.exports = async () => {
+  console.log('🧹 Nettoyage après les tests Jest...');
+
+  // Nettoyage des ressources globales si nécessaire
+
+  console.log('✅ Teardown global Jest terminé');
+};
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJtb2R1bGUiLCJleHBvcnRzIiwiY29uc29sZSIsImxvZyJdLCJzb3VyY2VzIjpbImplc3QuZ2xvYmFsLXRlYXJkb3duLmpzIl0sInNvdXJjZXNDb250ZW50IjpbIi8vIFRlYXJkb3duIGdsb2JhbCBwb3VyIEplc3QgLSBleMOpY3V0w6kgdW5lIHNldWxlIGZvaXMgYXByw6hzIHRvdXMgbGVzIHRlc3RzXG5tb2R1bGUuZXhwb3J0cyA9IGFzeW5jICgpID0+IHtcbiAgICBjb25zb2xlLmxvZygn8J+nuSBOZXR0b3lhZ2UgYXByw6hzIGxlcyB0ZXN0cyBKZXN0Li4uJyk7XG4gICAgXG4gICAgLy8gTmV0dG95YWdlIGRlcyByZXNzb3VyY2VzIGdsb2JhbGVzIHNpIG7DqWNlc3NhaXJlXG4gICAgXG4gICAgY29uc29sZS5sb2coJ+KchSBUZWFyZG93biBnbG9iYWwgSmVzdCB0ZXJtaW7DqScpO1xufTtcbiJdLCJtYXBwaW5ncyI6IkFBQUE7QUFDQUEsTUFBTSxDQUFDQyxPQUFPLEdBQUcsWUFBWTtFQUN6QkMsT0FBTyxDQUFDQyxHQUFHLENBQUMsc0NBQXNDLENBQUM7O0VBRW5EOztFQUVBRCxPQUFPLENBQUNDLEdBQUcsQ0FBQyxnQ0FBZ0MsQ0FBQztBQUNqRCxDQUFDIiwiaWdub3JlTGlzdCI6W119

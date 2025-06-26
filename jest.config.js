@@ -101,8 +101,7 @@ module.exports = {
   // Notifications (désactivées par défaut)
   notify: false,
 
-  // Couleurs dans la sortie
-  colors: true,
+  // Couleurs dans la sortie (géré automatiquement par Jest)
 
   // Affichage des erreurs
   errorOnDeprecated: true,
