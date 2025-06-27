@@ -75,6 +75,7 @@ router.post('/seeder', async (req, res) => {
     }
 });
 
+
 router.get('/', async (req, res) => {
     try {
         const auctions = await Auction.findAll();
