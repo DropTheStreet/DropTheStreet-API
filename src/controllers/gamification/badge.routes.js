@@ -20,7 +20,41 @@ router.post('/seeder', async (req, res) => {
                 name: 'Badge VIP',
                 description: 'Récompense pour les utilisateurs les plus actifs.',
                 image: null,
-            }
+            },
+
+            {
+                name: 'Premier Enchérisseur',
+                description: 'Félicitations pour votre première enchère gagnée et payée !',
+                image: null,
+            },
+            {
+                name: 'Enchérisseur Régulier',
+                description: 'Vous avez gagné et payé 5 enchères. Votre passion est remarquable !',
+                image: null,
+            },
+            {
+                name: 'Enchérisseur Elite',
+                description: 'Vous avez gagné et payé 10 enchères. Vous êtes un champion des enchères !',
+                image: null,
+            },
+
+            // Badges pour les drops
+            {
+                name: 'Premier Drop',
+                description: 'Félicitations pour votre premier achat de drop !',
+                image: null,
+            },
+            {
+                name: 'Collectionneur',
+                description: 'Vous avez acheté 5 drops. Votre collection s\'agrandit !',
+                image: null,
+            },
+            {
+                name: 'Collectionneur Elite',
+                description: 'Vous avez acheté 10 drops. Vous êtes un véritable collectionneur !',
+                image: null,
+            },
+
         ];
 
         for (let badge of badgesToCreate) {

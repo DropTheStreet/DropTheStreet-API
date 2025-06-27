@@ -11,6 +11,7 @@ const { Auction } = require('../../models/models/auction/auction.model');
 const { v4: uuidv4 } = require('uuid');
 const UserRepository = require("../../models/repositories/user/user-repository");
 const CartItemRepository = require("../../models/repositories/cart/cart_item-repository");
+const BadgeAwardService = require('../../services/badge-award.service');
 
 router.post('/seeder', async (req, res) => {
     try {
@@ -175,7 +176,7 @@ router.post('/process-success', async (req, res) => {
                     id_payment: payment.id_payment,
                     id_product: item.id_product,
                     quantity: 1,
-                    price_at_purchase: price
+                    price_at_purchase: price,
                 });
 
                 console.log(`📝 PaymentDetail créé: ${paymentDetail.id_payment_detail}`);
@@ -191,6 +192,14 @@ router.post('/process-success', async (req, res) => {
                     } else {
                         console.warn(`⚠️ Drop ${item.id_drop} non trouvé ou quantité insuffisante`);
                     }
+
+                    // Ajouter 100 dropcoins pour l'achat d'un drop
+                    const user = await User.findByPk(id_user);
+                    if (user) {
+                        const oldDropcoins = user.dropcoins || 0;
+                        await user.update({ dropcoins: oldDropcoins + 100 });
+                        console.log(`💰 Utilisateur ${id_user} dropcoins: ${oldDropcoins} → ${user.dropcoins} (+100 pour drop)`);
+                    }
                 } else if (item.Auction) {
                     // Marquer l'enchère comme non disponible au lieu de la supprimer
                     const auction = await Auction.findByPk(item.id_auction);
@@ -199,6 +208,14 @@ router.post('/process-success', async (req, res) => {
                         console.log(`🔨 Enchère ${item.id_auction} marquée comme non disponible`);
                     } else {
                         console.warn(`⚠️ Enchère ${item.id_auction} non trouvée`);
+                    }
+
+                    // Ajouter 250 dropcoins pour l'achat d'une enchère
+                    const user = await User.findByPk(id_user);
+                    if (user) {
+                        const oldDropcoins = user.dropcoins || 0;
+                        await user.update({ dropcoins: oldDropcoins + 250 });
+                        console.log(`💰 Utilisateur ${id_user} dropcoins: ${oldDropcoins} → ${user.dropcoins} (+250 pour enchère)`);
                     }
                 }
 
@@ -234,6 +251,30 @@ router.post('/process-success', async (req, res) => {
         });
 
         console.log(`✅ Paiement traité avec succès pour l'utilisateur ${id_user}`);
+
+        // 9. Vérifier et attribuer des badges
+        try {
+            // Vérifier si l'utilisateur a acheté des drops
+            const hasDrops = cartItems.some(item => item.Drop);
+            if (hasDrops) {
+                const dropBadgeResult = await BadgeAwardService.checkAndAwardBadges(id_user, false);
+                if (dropBadgeResult.awarded) {
+                    console.log(`🏆 ${dropBadgeResult.badges.length} badge(s) de drop attribué(s) à l'utilisateur ${id_user}`);
+                }
+            }
+
+            // Vérifier si l'utilisateur a acheté des enchères
+            const hasAuctions = cartItems.some(item => item.Auction);
+            if (hasAuctions) {
+                const auctionBadgeResult = await BadgeAwardService.checkAndAwardBadges(id_user, true);
+                if (auctionBadgeResult.awarded) {
+                    console.log(`🏆 ${auctionBadgeResult.badges.length} badge(s) d'enchère attribué(s) à l'utilisateur ${id_user}`);
+                }
+            }
+        } catch (badgeError) {
+            console.error('⚠️ Erreur lors de l\'attribution des badges:', badgeError);
+            // Ne pas bloquer le processus de paiement si l'attribution des badges échoue
+        }
 
     } catch (error) {
         console.error('❌ Erreur lors du traitement du paiement:', error);
