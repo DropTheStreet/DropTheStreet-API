@@ -28,7 +28,7 @@ router.post('/seeder', async (req, res) => {
                 actual_price: 1500,
                 size: 'M',
                 start_date: new Date('2025-06-19T10:00:00Z'),
-                end_date: new Date('2025-06-25T10:00:00Z'),
+                end_date: new Date('2025-06-30T10:00:00Z'),
                 id_product: products[0].id_product,
                 id_user: users[0].id_user
             },
@@ -45,7 +45,7 @@ router.post('/seeder', async (req, res) => {
                 initial_price: 2000,
                 actual_price: 2500,
                 size: 'S',
-                start_date: new Date('2025-06-19T15:00:00Z'),
+                start_date: new Date('2025-07-01T15:00:00Z'),
                 end_date: new Date('2025-07-20T15:00:00Z'),
                 id_product: products[2].id_product,
                 id_user: users[2].id_user

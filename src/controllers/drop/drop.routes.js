@@ -21,7 +21,7 @@ router.post('/seeder', async (req, res) => {
         const dropsToCreate = [
             {
                 start_date: new Date('2025-06-18T00:00:00Z'),
-                end_date: new Date('2025-06-27T23:59:59Z'),
+                end_date: new Date('2025-07-05T23:59:59Z'),
                 is_premium: false,
                 id_product: products[0].id_product,
                 price: 39.99,
